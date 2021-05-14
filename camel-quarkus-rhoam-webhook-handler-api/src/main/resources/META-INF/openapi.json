@@ -1,0 +1,149 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+        "title": "RHOAM Webhook Events Handler API",
+        "version": "1.0.0",
+        "description": "API that handles RHOAM Admin/Developer Portals webhook events",
+        "contact": {
+            "name": "Jean Nyilimbibi"
+        },
+        "license": {
+            "name": "MIT License",
+            "url": "https://opensource.org/licenses/MIT"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://rhoam-events-to-amqp-api.apps.jeannyil.sandbox438.opentlc.com",
+            "description": ""
+        }
+    ],
+    "paths": {
+        "/webhook/amqpbridge": {
+            "summary": "Bridges RHOAM Admin/Developer Portals webhook events to an AMQP broker",
+            "description": "Callback endpoint that receives RHOAM Admin/Developer Portals webhook events and sends them to an AMQP queue",
+            "post": {
+                "requestBody": {
+                    "description": "RHOAM Admin/Developer Portal webhook event in XML format",
+                    "content": {
+                        "text/xml": {
+                            "schema": {
+                                "type": "string"
+                            },
+                            "examples": {
+                                "applicationUpdateXMLEvent": {
+                                    "value": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<event>\n  <type>application</type>\n  <action>updated</action>\n  <object>\n    THE APPLICATION OBJECT AS WOULD BE RETURNED BY A GET ON THE ACCOUNT MANAGEMENT API\n  </object>\n</event>"
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseMessage"
+                                },
+                                "examples": {
+                                    "responseMessageOK": {
+                                        "value": {
+                                            "status": "OK"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "RHOAM XML event handled."
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseMessage"
+                                },
+                                "examples": {
+                                    "responseMessageKO": {
+                                        "value": {
+                                            "status": "KO",
+                                            "error": {
+                                                "code": "500",
+                                                "description": "Internal Server Error",
+                                                "message": "java.lang.Exception: Mocked error message"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Internal server error"
+                    }
+                },
+                "operationId": "sendToAMQPQueue",
+                "summary": "Sends RHOAM Admin/Developer Portal webhook event to an AMQP queue",
+                "description": "Sends RHOAM Admin/Developer Portal webhook event to an AMQP queue"
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ResponseMessage": {
+                "title": "Root Type for ResponseMessage",
+                "description": "Response message",
+                "required": [
+                    "status"
+                ],
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "description": "Status",
+                        "enum": [
+                            "OK",
+                            "KO"
+                        ],
+                        "type": "string"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorMessageType",
+                        "description": "Status message"
+                    }
+                },
+                "example": {
+                    "status": "KO",
+                    "error": {
+                        "code": "500",
+                        "description": "Internal server error",
+                        "message": "java.lang.Exception: mocked error"
+                    }
+                }
+            },
+            "ErrorMessageType": {
+                "title": "Root Type for StatusMessageType",
+                "description": "Error message type  ",
+                "required": [
+                    "code",
+                    "description",
+                    "message"
+                ],
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                },
+                "example": {
+                    "code": "500",
+                    "description": "Internal server error",
+                    "message": "java.lang.Exception: mocked error"
+                }
+            }
+        }
+    }
+}
