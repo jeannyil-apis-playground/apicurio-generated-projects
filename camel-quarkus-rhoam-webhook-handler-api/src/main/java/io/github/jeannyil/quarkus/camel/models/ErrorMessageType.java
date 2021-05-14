@@ -1,5 +1,5 @@
 
-package io.github.jeannyil.beans;
+package io.github.jeannyil.quarkus.camel.models;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

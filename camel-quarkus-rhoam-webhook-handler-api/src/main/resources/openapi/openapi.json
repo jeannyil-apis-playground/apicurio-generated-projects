@@ -14,8 +14,8 @@
     },
     "servers": [
         {
-            "url": "http://rhoam-events-to-amqp-api.apps.jeannyil.sandbox438.opentlc.com",
-            "description": ""
+            "url": "http://rhoam-webhook-events-handler-api.apps.jeannyil.sandbox438.opentlc.com",
+            "description": "API Backend URL"
         }
     ],
     "paths": {
@@ -31,8 +31,11 @@
                                 "type": "string"
                             },
                             "examples": {
-                                "applicationUpdateXMLEvent": {
-                                    "value": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<event>\n  <type>application</type>\n  <action>updated</action>\n  <object>\n    THE APPLICATION OBJECT AS WOULD BE RETURNED BY A GET ON THE ACCOUNT MANAGEMENT API\n  </object>\n</event>"
+                                "accountCreatedXmlEvent": {
+                                    "value": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<event>\n  <action>created</action>\n  <type>account</type>\n  <object>\n    <account>\n      <id>6</id>\n      <created_at>2021-05-14T20:22:53Z</created_at>\n      <updated_at>2021-05-14T20:22:53Z</updated_at>\n      <state>created</state>\n      <org_name>TestAccount</org_name>\n      <extra_fields/>\n      <monthly_billing_enabled>true</monthly_billing_enabled>\n      <monthly_charging_enabled>true</monthly_charging_enabled>\n      <credit_card_stored>false</credit_card_stored>\n      <plans>\n        <plan default=\"true\">\n          <id>6</id>\n          <name>Default</name>\n          <type>account_plan</type>\n          <state>hidden</state>\n          <approval_required>false</approval_required>\n          <setup_fee>0.0</setup_fee>\n          <cost_per_month>0.0</cost_per_month>\n          <trial_period_days/>\n          <cancellation_period>0</cancellation_period>\n        </plan>\n      </plans>\n      <users>\n        <user>\n          <id>9</id>\n          <created_at>2021-05-14T20:22:53Z</created_at>\n          <updated_at>2021-05-14T20:22:53Z</updated_at>\n          <account_id>6</account_id>\n          <state>pending</state>\n          <role>admin</role>\n          <username>admin</username>\n          <email>admin@acme.org</email>\n          <extra_fields/>\n        </user>\n      </users>\n    </account>\n  </object>\n</event>"
+                                },
+                                "accountDeletedXmlEvent": {
+                                    "value": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<event>\n  <action>updated</action>\n  <type>account</type>\n  <object>\n    <account>\n      <id>6</id>\n      <created_at>2021-05-14T20:22:53Z</created_at>\n      <updated_at>2021-05-14T20:22:53Z</updated_at>\n      <state>approved</state>\n      <org_name>TestAccount</org_name>\n      <extra_fields/>\n      <monthly_billing_enabled>true</monthly_billing_enabled>\n      <monthly_charging_enabled>true</monthly_charging_enabled>\n      <credit_card_stored>false</credit_card_stored>\n      <plans>\n        <plan default=\"true\">\n          <id>6</id>\n          <name>Default</name>\n          <type>account_plan</type>\n          <state>hidden</state>\n          <approval_required>false</approval_required>\n          <setup_fee>0.0</setup_fee>\n          <cost_per_month>0.0</cost_per_month>\n          <trial_period_days/>\n          <cancellation_period>0</cancellation_period>\n        </plan>\n      </plans>\n      <users>\n        <user>\n          <id>9</id>\n          <created_at>2021-05-14T20:22:53Z</created_at>\n          <updated_at>2021-05-14T20:22:53Z</updated_at>\n          <account_id>6</account_id>\n          <state>pending</state>\n          <role>admin</role>\n          <username>admin</username>\n          <email>admin@acme.org</email>\n          <extra_fields/>\n        </user>\n      </users>\n    </account>\n  </object>\n</event>"
                                 }
                             }
                         }

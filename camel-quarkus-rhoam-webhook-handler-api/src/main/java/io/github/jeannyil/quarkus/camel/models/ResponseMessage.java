@@ -1,5 +1,5 @@
 
-package io.github.jeannyil.beans;
+package io.github.jeannyil.quarkus.camel.models;
 
 import java.util.HashMap;
 import java.util.Map;
