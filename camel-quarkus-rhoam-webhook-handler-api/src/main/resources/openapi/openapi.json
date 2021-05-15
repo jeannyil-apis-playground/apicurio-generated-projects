@@ -22,6 +22,30 @@
         "/webhook/amqpbridge": {
             "summary": "Bridges RHOAM Admin/Developer Portals webhook events to an AMQP broker",
             "description": "Callback endpoint that receives RHOAM Admin/Developer Portals webhook events and sends them to an AMQP queue",
+            "get": {
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseMessage"
+                                },
+                                "examples": {
+                                    "responseMessageOK": {
+                                        "value": {
+                                            "status": "OK"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Pong"
+                    }
+                },
+                "operationId": "pingWebhook",
+                "summary": "Handles RHOAM webhook ping",
+                "description": "Handles RHOAM webhook ping"
+            },
             "post": {
                 "requestBody": {
                     "description": "RHOAM Admin/Developer Portal webhook event in XML format",

@@ -3,7 +3,9 @@
 This project leverages **Red Hat build of Quarkus 1.7.x**, the Supersonic Subatomic Java Framework.
 
 It exposes the following RESTful service endpoints  using **Apache Camel REST DSL** and the **Apache Camel Quarkus Platform HTTP** extension:
-- `/webhook/amqpbridge` : Sends RHOAM Admin/Developer Portal webhook XML event to an AMQP queue through the `POST` HTTP method.
+- `/webhook/amqpbridge` : 
+    - Webhook ping endpoint through the `GET` HTTP method.
+    - Sends RHOAM Admin/Developer Portal webhook XML event to an AMQP queue through the `POST` HTTP method.
 - `/openapi.json`: returns the OpenAPI 3.0 specification for the service.
 - `/health` : returns the _Camel Quarkus MicroProfile_ health checks
 - `/metrics` : the _Camel Quarkus MicroProfile_ metrics

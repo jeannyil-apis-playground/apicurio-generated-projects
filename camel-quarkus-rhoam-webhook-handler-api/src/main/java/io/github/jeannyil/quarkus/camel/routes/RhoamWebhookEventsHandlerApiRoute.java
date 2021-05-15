@@ -1,11 +1,15 @@
 package io.github.jeannyil.quarkus.camel.routes;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.model.rest.RestParamType;
 
@@ -19,12 +23,21 @@ import io.github.jeannyil.quarkus.camel.models.ResponseMessage;
 	more complex than the one of the plain RouteBuilder. 
 	In other words, using @ApplicationScoped in RouteBuilder comes with some boot time penalty and you should 
 	therefore only annotate your RouteBuilder with @ApplicationScoped when you really need it. */
+@ApplicationScoped
 public class RhoamWebhookEventsHandlerApiRoute extends RouteBuilder {
 
 	private static String logName = RhoamWebhookEventsHandlerApiRoute.class.getName();
+
+	@Inject
+	private CamelContext camelctx;
 	
 	@Override
 	public void configure() throws Exception {
+
+		// Enable Stream caching
+        camelctx.setStreamCaching(true);
+        // Enable use of breadcrumbId
+        camelctx.setUseBreadcrumb(true);
 		
 		/**
 		 * Catch unexpected exceptions
@@ -33,10 +46,16 @@ public class RhoamWebhookEventsHandlerApiRoute extends RouteBuilder {
 			.handled(true)
 			.maximumRedeliveries(0)
 			.log(LoggingLevel.ERROR, logName, ">>> ${routeId} - Caught exception: ${exception.stacktrace}").id("log-api-unexpected")
-			//.to("direct:common-500").id("to-common-500")
+			.setHeader(Exchange.HTTP_RESPONSE_CODE, constant(constant(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())))
+			.setHeader(Exchange.HTTP_RESPONSE_TEXT, constant(constant(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase())))
+			.setBody()
+				.method("responseMessageHelper", 
+						"generateKOResponseMessage(${headers.CamelHttpResponseCode}, ${headers.CamelHttpResponseText}, ${exception})")
+				.id("set-unexpected-reponseMessage")
+			.end()
+			.marshal().json(JsonLibrary.Jackson, true).id("marshal-unexpected-responseMessage-to-json")
 			.log(LoggingLevel.INFO, logName, ">>> ${routeId} - OUT: headers:[${headers}] - body:[${body}]").id("log-api-unexpected-response")
 		;
-		
 		
 		/**
 		 * REST configuration with Camel Quarkus Platform HTTP component
@@ -71,18 +90,31 @@ public class RhoamWebhookEventsHandlerApiRoute extends RouteBuilder {
 						.id("setBody-for-openapi-document")
 					.log(LoggingLevel.INFO, logName, ">>> ${routeId} - OUT: headers:[${headers}] - body:[${body}]").id("log-openapi-doc-response")
 				.end()
-	  ;
+		;
 		
 		/**
 		 * REST endpoint for the RHOAM Webhook Events Handler API
 		 */
 		rest().id("rhoam-webhook-events-handler-api")
-			.consumes(MediaType.TEXT_XML)
-			.produces(MediaType.APPLICATION_JSON)
 				
-			// Validates a `Membership` JSON instance
+			// Handles RHOAM webhook ping
+			.get("/webhook/amqpbridge")
+				.id("webhook-amqpbridge-ping-route")
+				.description("Handles RHOAM webhook ping")
+				.produces(MediaType.APPLICATION_JSON)
+				.responseMessage()
+					.code(Response.Status.OK.getStatusCode())
+					.message(Response.Status.OK.getReasonPhrase())
+					.responseModel(ResponseMessage.class)
+				.endResponseMessage()
+				// Call the WebhookPingRoute
+				.to("direct:pingWebhook")
+			
+			// Handles the RHOAM Admin/Developer Portal webhook event and sends it to an AMQP queue
 			.post("/webhook/amqpbridge")
-				.id("webhook-amqpbridge-endpoint-route")
+				.id("webhook-amqpbridge-handler-route")
+				.consumes(MediaType.WILDCARD)
+				.produces(MediaType.APPLICATION_JSON)
 				.description("Sends RHOAM Admin/Developer Portal webhook event to an AMQP queue")
 				.param()
 					.name("body")
@@ -103,6 +135,7 @@ public class RhoamWebhookEventsHandlerApiRoute extends RouteBuilder {
 				.endResponseMessage()
 				// call the SendToAMQPQueueRoute
 				.to("direct:sendToAMQPQueue")
+
 		;
 			
 	}
