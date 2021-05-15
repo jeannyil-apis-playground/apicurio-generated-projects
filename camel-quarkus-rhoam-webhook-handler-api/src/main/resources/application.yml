@@ -68,7 +68,7 @@ quarkus:
             # that should be registered for reflection.
             # Reference: https://camel.apache.org/camel-quarkus/latest/user-guide/native-mode.html#reflection
             reflection:
-                include-patterns: java.lang.Exception
+                include-patterns: java.lang.Exception,org.apache.camel.TypeConversionException
 
             # A comma separated list of Ant-path style patterns to match resources
             # that should be <strong>included</strong> in the native executable. By default,
@@ -79,3 +79,10 @@ quarkus:
             # with <code>excludePatterns</code>.
             resources:
                 include-patterns: openapi/*
+            
+    # Register for indexing
+    # Reference: https://camel.apache.org/camel-quarkus/latest/user-guide/native-mode.html#reflection
+    # index-dependency:
+    #     commons-lang3:
+    #         group-id: org.apache.commons
+    #         artifact-id: commons-lang3

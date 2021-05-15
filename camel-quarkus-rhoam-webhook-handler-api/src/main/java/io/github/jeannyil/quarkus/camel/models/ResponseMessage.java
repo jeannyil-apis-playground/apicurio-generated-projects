@@ -3,12 +3,15 @@ package io.github.jeannyil.quarkus.camel.models;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonValue;
+
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
 
 /**
@@ -22,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
     "status",
     "error"
 })
+@RegisterForReflection // Lets Quarkus register this class for reflection during the native build
 public class ResponseMessage {
 
     /**

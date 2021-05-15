@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
 
 /**
  * Root Type for StatusMessageType
@@ -18,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "description",
     "message"
 })
+@RegisterForReflection // Lets Quarkus register this class for reflection during the native build
 public class ErrorMessageType {
 
     /**
