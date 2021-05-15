@@ -9,10 +9,10 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.model.rest.RestParamType;
 
+import io.github.jeannyil.quarkus.camel.constants.DirectEndpointConstants;
 import io.github.jeannyil.quarkus.camel.models.ResponseMessage;
 
 
@@ -46,14 +46,7 @@ public class RhoamWebhookEventsHandlerApiRoute extends RouteBuilder {
 			.handled(true)
 			.maximumRedeliveries(0)
 			.log(LoggingLevel.ERROR, logName, ">>> ${routeId} - Caught exception: ${exception.stacktrace}").id("log-api-unexpected")
-			.setHeader(Exchange.HTTP_RESPONSE_CODE, constant(constant(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())))
-			.setHeader(Exchange.HTTP_RESPONSE_TEXT, constant(constant(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase())))
-			.setBody()
-				.method("responseMessageHelper", 
-						"generateKOResponseMessage(${headers.CamelHttpResponseCode}, ${headers.CamelHttpResponseText}, ${exception})")
-				.id("set-unexpected-reponseMessage")
-			.end()
-			.marshal().json(JsonLibrary.Jackson, true).id("marshal-unexpected-responseMessage-to-json")
+			.to(DirectEndpointConstants.DIRECT_GENERATE_ERROR_MESSAGE).id("generate-api-500-errorresponse")
 			.log(LoggingLevel.INFO, logName, ">>> ${routeId} - OUT: headers:[${headers}] - body:[${body}]").id("log-api-unexpected-response")
 		;
 		
@@ -108,7 +101,7 @@ public class RhoamWebhookEventsHandlerApiRoute extends RouteBuilder {
 					.responseModel(ResponseMessage.class)
 				.endResponseMessage()
 				// Call the WebhookPingRoute
-				.to("direct:pingWebhook")
+				.to(DirectEndpointConstants.DIRECT_PING_WEBHOOK)
 			
 			// Handles the RHOAM Admin/Developer Portal webhook event and sends it to an AMQP queue
 			.post("/webhook/amqpbridge")
@@ -134,7 +127,7 @@ public class RhoamWebhookEventsHandlerApiRoute extends RouteBuilder {
 					.responseModel(ResponseMessage.class)
 				.endResponseMessage()
 				// call the SendToAMQPQueueRoute
-				.to("direct:sendToAMQPQueue")
+				.to(DirectEndpointConstants.DIRECT_SEND_TO_AMQP_QUEUE)
 
 		;
 			
