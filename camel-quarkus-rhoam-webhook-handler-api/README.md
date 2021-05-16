@@ -5,21 +5,34 @@ This project leverages **Red Hat build of Quarkus 1.7.x**, the Supersonic Subato
 It exposes the following RESTful service endpoints  using **Apache Camel REST DSL** and the **Apache Camel Quarkus Platform HTTP** extension:
 - `/webhook/amqpbridge` : 
     - Webhook ping endpoint through the `GET` HTTP method.
-    - Sends RHOAM Admin/Developer Portal webhook XML event to an AMQP queue through the `POST` HTTP method.
+    - Sends RHOAM Admin/Developer Portal webhook XML event to an AMQP address (`RHOAM.WEBHOOK.EVENTS.QUEUE`) through the `POST` HTTP method.
 - `/openapi.json`: returns the OpenAPI 3.0 specification for the service.
 - `/health` : returns the _Camel Quarkus MicroProfile_ health checks
 - `/metrics` : the _Camel Quarkus MicroProfile_ metrics
 
+Moreover, this project leverages the [**Quarkus Kubernetes-Config** extenstion](https://quarkus.io/guides/kubernetes-config) in order to customize the run-time AMQP broker connection parameters according to your environment through the `quarkus-amqpbroker-connection-secret` secret. For instance:
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: quarkus-amqpbroker-connection-secret
+data:
+  quarkus.qpid-jms.password: UEBzc3cwcmQ=
+  quarkus.qpid-jms.url: YW1xcHM6Ly9hbXEtc3NsLWJyb2tlci1hbXFwLTAtc3ZjLmFtcTctYnJva2VyLWNsdXN0ZXIuc3ZjOjU2NzI/dHJhbnNwb3J0LnRydXN0QWxsPXRydWUmdHJhbnNwb3J0LnZlcmlmeUhvc3Q9ZmFsc2UmYW1xcC5pZGxlVGltZW91dD0xMjAwMDA=
+  quarkus.qpid-jms.username: YW1xLXVzZXI=
+type: Opaque
+```
+
 ## Prerequisites
 - JDK 11 installed with `JAVA_HOME` configured appropriately
-- Apache Maven 3.6.2+
-- The Red Hat AMQ 7 product should already be installed and running on your OpenShift installation with an SSL-enabled AMQP acceptor.
+- Apache Maven 3.6.3+
+- An [**AMQP 1.0 protocol**](https://www.amqp.org/) compliant broker should already be installed and running. [**Red Hat AMQ 7.8 broker on OpenShift**](https://access.redhat.com/documentation/en-us/red_hat_amq/2020.q4/html/deploying_amq_broker_on_openshift/index) with an SSL-enabled AMQP acceptor has been used for testing.
 
 ## Running the application in dev mode
 
 You can run your application in dev mode that enables live coding using:
 ```
-./mvnw quarkus:dev
+./mvnw quarkus:dev -Dquarkus.kubernetes-config.enabled=false
 ```
 
 ## Packaging and running the application locally
@@ -28,13 +41,22 @@ The application can be packaged using `./mvnw package`.
 It produces the `camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar` file in the `/target` directory.
 Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/lib` directory.
 
-The application is now runnable using `java -jar target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar`.
+The application is now runnable using: 
+```zsh
+java -jar target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar -Dquarkus.kubernetes-config.enabled=false
+```
+
+You may customize the [**AMQP broker connection parameters**](https://github.com/amqphub/quarkus-qpid-jms#configuration) according to your environment by adding the following run-time _system properties_:
+- `quarkus.qpid-jms.url`
+- `quarkus.qpid-jms.username`
+- `quarkus.qpid-jms.password`
 
 ## Packaging and running the application on Red Hat OpenShift
 
 ### Pre-requisites
 - Access to a [Red Hat OpenShift](https://access.redhat.com/documentation/en-us/openshift_container_platform) cluster v3 or v4
 - User has self-provisioner privilege or has access to a working OpenShift project
+- An [**AMQP 1.0 protocol**](https://www.amqp.org/) compliant broker should already be installed and running. [**Red Hat AMQ 7.8 broker on OpenShift**](https://access.redhat.com/documentation/en-us/red_hat_amq/2020.q4/html/deploying_amq_broker_on_openshift/index) with an SSL-enabled AMQP acceptor has been used for testing.
 
 1. Login to the OpenShift cluster
     ```zsh
@@ -44,26 +66,67 @@ The application is now runnable using `java -jar target/camel-quarkus-rhoam-webh
     ```zsh
     oc new-project camel-quarkus-jvm --display-name="Apache Camel Quarkus Apps - JVM Mode"
     ```
-3. Use either the _**S2I binary workflow**_ or _**S2I source workflow**_ to deploy the `camel-quarkus-rhoam-webhook-handler-api` app as described below.
+3. Create the `quarkus-amqpbroker-connection-secret` containing the _QUARKUS QPID JMS_ [configuration options](https://github.com/amqphub/quarkus-qpid-jms#configuration). These options are leveraged by the _Camel Quarkus AMQP_ extension to connect to an AMQP broker. 
+
+    :warning: _Replace values with your AMQP broker environment_
+    ```zsh
+    oc create secret generic quarkus-amqpbroker-connection-secret \
+    --from-literal=quarkus.qpid-jms.url="amqps://amq-ssl-broker-amqp-0-svc.amq7-broker-cluster.svc:5672?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000" \
+    --from-literal=quarkus.qpid-jms.username="amq-user" \
+    --from-literal=quarkus.qpid-jms.password="P@ssw0rd"
+    ``` 
+
+4. Use either the _**S2I binary workflow**_ or _**S2I source workflow**_ to deploy the `camel-quarkus-rhoam-webhook-handler-api` app as described below.
 
 ### OpenShift S2I binary workflow 
 
-This leverages the _Quarkus OpenShift_ extension and is only recommended for development and testing purposes.
+This leverages the **Quarkus OpenShift** extension and is only recommended for development and testing purposes.
 
+Make sure the latest supported OpenJDK 11 image is imported in OpenShift
+```zsh
+oc import-image --confirm openjdk-11-ubi8 \
+--from=registry.access.redhat.com/ubi8/openjdk-11 \
+-n openshift
+```
 ```zsh
 ./mvnw clean package -Dquarkus.kubernetes.deploy=true
 ```
 ```zsh
 [...]
-[INFO] [io.quarkus.deployment.pkg.steps.JarResultBuildStep] Building thin jar: /Users/jeannyil/Workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Deploying target 'openshift' since it has the highest priority among the implicitly enabled deployment targets
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeploy] Kubernetes API Server at 'https://api.jeannyil.sandbox438.opentlc.com:6443/' successfully contacted.
+[INFO] [io.quarkus.arc.processor.BeanProcessor] Found unrecommended usage of private members (use package-private instead) in application beans:
+        - @Inject field io.github.jeannyil.quarkus.camel.routes.RhoamWebhookEventsHandlerApiRoute#camelctx
+[INFO] [io.quarkus.deployment.pkg.steps.JarResultBuildStep] Building thin jar: /Users/jeannyil/Workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar
 [...]
 [INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Performing s2i binary build with jar on server: https://api.jeannyil.sandbox438.opentlc.com:6443/ in namespace:camel-quarkus-jvm.
 [...]
-[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Successfully pushed image-registry.openshift-image-registry.svc:5000/camel-quarkus-jvm/camel-quarkus-rhoam-webhook-handler-api@sha256:fc92c094ef6386ce3da9ef83164a84f6f421ed93da356524523c0ac385e1722e
-[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Push successful
+[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Pushing image image-registry.openshift-image-registry.svc:5000/camel-quarkus-jvm/camel-quarkus-rhoam-webhook-handler-api:1.0.0 ...
+[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Getting image source signatures
+[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Copying blob sha256:8f403cb21126270e2d1551022b82c77c695ce40c9812795daf7ad77a05c2b9f6
+[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Copying blob sha256:08506ddf42e87973062272df927a2cffa6476b7572b552d3ec2cf905c8b0ff3f
+[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Copying blob sha256:65c0f2178ac8a3c28f48efd26ccf16bd6f344fa88d1aa20efd3a25d5f99587c0
+[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Copying blob sha256:9adb6891eac3949dc8ce73ad1f0ee49f7c385cdc8e7efdf5de8a8c1bd1d68de9
+[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Copying config sha256:b9882d15e5a02c38ef4012b35f5c66781b6564a8e7acd2776de7f661a764cf24
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Deploying to openshift server: https://api.jeannyil.sandbox438.opentlc.com:6443/ in namespace: camel-quarkus-jvm.
-[...]
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: ServiceAccount camel-quarkus-rhoam-webhook-handler-api.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Service camel-quarkus-rhoam-webhook-handler-api.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Role view-secrets.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: RoleBinding camel-quarkus-rhoam-webhook-handler-api:view.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: RoleBinding camel-quarkus-rhoam-webhook-handler-api:view-secrets.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: ImageStream camel-quarkus-rhoam-webhook-handler-api.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: ImageStream openjdk-11.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: BuildConfig camel-quarkus-rhoam-webhook-handler-api.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: DeploymentConfig camel-quarkus-rhoam-webhook-handler-api.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Route camel-quarkus-rhoam-webhook-handler-api.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] The deployed application can be accessed at: http://camel-quarkus-rhoam-webhook-handler-api-camel-quarkus-jvm.apps.jeannyil.sandbox438.opentlc.com
+[INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 90857ms
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:45 min
+[INFO] Finished at: 2021-05-16T13:12:11+02:00
+[INFO] ------------------------------------------------------------------------
 ```
 
 ### OpenShift S2I source workflow (recommended for PRODUCTION use)
@@ -101,32 +164,31 @@ This leverages the _Quarkus OpenShift_ extension and is only recommended for dev
 
 ## Testing the application on OpenShift
 
+### Pre-requisites
+
+- [**`curl`**](https://curl.se/) or [**`HTTPie`**](https://httpie.io/) command line tools. 
+- [**`HTTPie`**](https://httpie.io/) has been used in the tests.
+
+### Testing instructions:
+
 1. Get the OpenShift route hostname
     ```zsh
     URL="http://$(oc get route camel-quarkus-rhoam-webhook-handler-api -o jsonpath='{.spec.host}')"
     ```
 2. Test the `/webhook/amqpbridge` endpoint
+
     - `GET /webhook/amqpbridge` :
 
         ```zsh
         http -v $URL/webhook/amqpbridge
         ```
         ```zsh
-        GET /webhook/amqpbridge HTTP/1.1
         [...]
-        User-Agent: HTTPie/2.4.0
-
         HTTP/1.1 200 OK
-        Accept: */*
-        Accept-Encoding: gzip, deflate
-        Access-Control-Allow-Headers: Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers
-        Access-Control-Allow-Methods: GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, CONNECT, PATCH
-        Access-Control-Allow-Origin: *
-        Access-Control-Max-Age: 3600
-        Cache-control: private
+        [...]
         Content-Type: application/json
         [...]
-        breadcrumbId: FE8FBEE819ADD3E-0000000000000001
+        breadcrumbId: 43EB8F0221CD24E-0000000000000001
         transfer-encoding: chunked
 
         {
@@ -185,15 +247,7 @@ This leverages the _Quarkus OpenShift_ extension and is only recommended for dev
             </event>' | http -v POST $URL/webhook/amqpbridge content-type:application/xml
             ```
             ```zsh
-            POST /webhook/amqpbridge HTTP/1.1
-            Accept: application/json, */*;q=0.5
             [...]
-            content-type: application/xml
-
-            <?xml version="1.0" encoding="UTF-8"?>
-            <event>
-            [...]
-
             HTTP/1.1 200 OK
             Access-Control-Allow-Headers: Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers
             Access-Control-Allow-Methods: GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, CONNECT, PATCH
@@ -202,8 +256,8 @@ This leverages the _Quarkus OpenShift_ extension and is only recommended for dev
             Content-Type: application/json
             RHOAM_EVENT_ACTION: updated
             RHOAM_EVENT_TYPE: account
-            [...]
-            breadcrumbId: FE8FBEE819ADD3E-0000000000000002
+            Set-Cookie: 0d5acfcb0ca2b6f2520831b8d4bd4031=f3580c9af577adb49be04813506f5ec6; path=/; HttpOnly
+            breadcrumbId: 43EB8F0221CD24E-0000000000000002
             transfer-encoding: chunked
 
             {
@@ -217,22 +271,15 @@ This leverages the _Quarkus OpenShift_ extension and is only recommended for dev
             echo 'PLAIN TEXT' | http -v POST $URL/webhook/amqpbridge content-type:application/xml
             ```
             ```zsh
-            POST /webhook/amqpbridge HTTP/1.1
-            Accept: application/json, */*;q=0.5
             [...]
-            User-Agent: HTTPie/2.4.0
-            content-type: application/xml
-
-            PLAIN TEXT
-
             HTTP/1.1 400 Bad Request
             Access-Control-Allow-Headers: Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers
             Access-Control-Allow-Methods: GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, CONNECT, PATCH
             Access-Control-Allow-Origin: *
             Access-Control-Max-Age: 3600
             Content-Type: application/json
-            [..]
-            breadcrumbId: C3AC19D2D0EC37E-0000000000000004
+            Set-Cookie: 0d5acfcb0ca2b6f2520831b8d4bd4031=f3580c9af577adb49be04813506f5ec6; path=/; HttpOnly
+            breadcrumbId: 43EB8F0221CD24E-0000000000000003
             transfer-encoding: chunked
 
             {
@@ -250,22 +297,13 @@ This leverages the _Quarkus OpenShift_ extension and is only recommended for dev
     http -v $URL/openapi.json
     ```
     ```zsh
-    GET /openapi.json HTTP/1.1
-    Accept: */*
     [...]
-    User-Agent: HTTPie/2.4.0
-
     HTTP/1.1 200 OK
     Accept: */*
-    Accept-Encoding: gzip, deflate
-    Access-Control-Allow-Headers: Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers
-    Access-Control-Allow-Methods: GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, CONNECT, PATCH
-    Access-Control-Allow-Origin: *
-    Access-Control-Max-Age: 3600
-    Cache-control: private
+    [...]
     Content-Type: application/vnd.oai.openapi+json
     [...]
-    breadcrumbId: FE8FBEE819ADD3E-0000000000000004
+    breadcrumbId: DFB5B53061B9578-0000000000000002
     transfer-encoding: chunked
 
     {
@@ -299,11 +337,16 @@ This leverages the _Quarkus OpenShift_ extension and is only recommended for dev
     ```
 4. Test the `/health` endpoint
     ```zsh
-    curl -w '\n' $URL/health
+    http -v $URL/health
     ```
-    ```json
+    ```zsh
+    HTTP/1.1 200 OK
+    Cache-control: private
+    Set-Cookie: 0d5acfcb0ca2b6f2520831b8d4bd4031=c1552cc3572cec4462da37f30dd5423d; path=/; HttpOnly
+    content-length: 438
+    content-type: application/json; charset=UTF-8
+
     {
-        "status": "UP",
         "checks": [
             {
                 "name": "camel-liveness-checks",
@@ -314,71 +357,108 @@ This leverages the _Quarkus OpenShift_ extension and is only recommended for dev
                 "status": "UP"
             },
             {
-                "name": "camel-context-check",
-                "status": "UP",
                 "data": {
                     "contextStatus": "Started",
                     "name": "camel-1"
-                }
+                },
+                "name": "camel-context-check",
+                "status": "UP"
             }
-        ]
+        ],
+        "status": "UP"
     }
     ```
 5. Test the `/health/live` endpoint
     ```zsh
-    curl -w '\n' $URL/health/live
+    http -v $URL/health/live
     ```
-    ```json
+    ```zsh
+    HTTP/1.1 200 OK
+    Cache-control: private
+    Set-Cookie: 0d5acfcb0ca2b6f2520831b8d4bd4031=f3580c9af577adb49be04813506f5ec6; path=/; HttpOnly
+    content-length: 138
+    content-type: application/json; charset=UTF-8
+
     {
-        "status": "UP",
         "checks": [
             {
                 "name": "camel-liveness-checks",
                 "status": "UP"
             }
-        ]
+        ],
+        "status": "UP"
     }
     ```
 6. Test the `/health/ready` endpoint
     ```zsh
-    curl -w '\n' $URL/health/ready
+    http -v $URL/health/ready
     ```
-    ```json
+    ```zsh
+    HTTP/1.1 200 OK
+    Cache-control: private
+    Set-Cookie: 0d5acfcb0ca2b6f2520831b8d4bd4031=f3580c9af577adb49be04813506f5ec6; path=/; HttpOnly
+    content-length: 345
+    content-type: application/json; charset=UTF-8
+
     {
-        "status": "UP",
         "checks": [
             {
-                "name": "camel-readiness-checks",
-                "status": "UP"
-            },
-            {
-                "name": "camel-context-check",
-                "status": "UP",
                 "data": {
                     "contextStatus": "Started",
                     "name": "camel-1"
-                }
+                },
+                "name": "camel-context-check",
+                "status": "UP"
+            },
+            {
+                "name": "camel-readiness-checks",
+                "status": "UP"
             }
-        ]
+        ],
+        "status": "UP"
     }
     ```
 7. Test the `/metrics` endpoint
     ```zsh
-    curl -w '\n' $URL/metrics
+    http -v $URL/metrics
     ```
     ```zsh
     [...]
+    HTTP/1.1 200 OK
+    Access-Control-Allow-Credentials: true
+    Access-Control-Allow-Headers: origin, content-type, accept, authorization
+    Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, HEAD
+    Access-Control-Allow-Origin: *
+    Access-Control-Max-Age: 1209600
+    Cache-control: private
+    Content-Type: text/plain
+    Set-Cookie: 0d5acfcb0ca2b6f2520831b8d4bd4031=c1552cc3572cec4462da37f30dd5423d; path=/; HttpOnly
+    content-length: 38276
+    [...]
     # HELP application_camel_context_exchanges_total The total number of exchanges for a route or Camel Context
     # TYPE application_camel_context_exchanges_total counter
-    application_camel_context_exchanges_total{camelContext="camel-1"} 20.0
+    application_camel_context_exchanges_total{camelContext="camel-1"} 5.0
+    [...]
+    # HELP application_camel_route_count The count of routes.
+    # TYPE application_camel_route_count gauge
+    application_camel_route_count{camelContext="camel-1"} 6.0
+    # HELP application_camel_route_exchanges_completed_total The total number of completed exchanges for a route or Camel Context
+    # TYPE application_camel_route_exchanges_completed_total counter
+    application_camel_route_exchanges_completed_total{camelContext="camel-1",routeId="generate-error-response-route"} 0.0
+    application_camel_route_exchanges_completed_total{camelContext="camel-1",routeId="get-openapi-spec-route"} 1.0
+    application_camel_route_exchanges_completed_total{camelContext="camel-1",routeId="ping-webhook-route"} 0.0
+    application_camel_route_exchanges_completed_total{camelContext="camel-1",routeId="send-to-amqp-queue-route"} 1.0
+    application_camel_route_exchanges_completed_total{camelContext="camel-1",routeId="webhook-amqpbridge-handler-route"} 1.0
+    application_camel_route_exchanges_completed_total{camelContext="camel-1",routeId="webhook-amqpbridge-ping-route"} 0.0
     [...]
     # HELP application_camel_route_exchanges_total The total number of exchanges for a route or Camel Context
     # TYPE application_camel_route_exchanges_total counter
-    application_camel_route_exchanges_total{camelContext="camel-1",routeId="common-500-http-code-route"} 0.0
-    application_camel_route_exchanges_total{camelContext="camel-1",routeId="custom-http-error-route"} 0.0
-    application_camel_route_exchanges_total{camelContext="camel-1",routeId="get-openapi-spec-route"} 2.0
-    application_camel_route_exchanges_total{camelContext="camel-1",routeId="json-validation-api-route"} 20.0
-    application_camel_route_exchanges_total{camelContext="camel-1",routeId="validate-membership-json-route"} 20.0
+    application_camel_route_exchanges_total{camelContext="camel-1",routeId="generate-error-response-route"} 2.0
+    application_camel_route_exchanges_total{camelContext="camel-1",routeId="get-openapi-spec-route"} 1.0
+    application_camel_route_exchanges_total{camelContext="camel-1",routeId="ping-webhook-route"} 1.0
+    application_camel_route_exchanges_total{camelContext="camel-1",routeId="send-to-amqp-queue-route"} 3.0
+    application_camel_route_exchanges_total{camelContext="camel-1",routeId="webhook-amqpbridge-handler-route"} 3.0
+    application_camel_route_exchanges_total{camelContext="camel-1",routeId="webhook-amqpbridge-ping-route"} 1.0
     [...]
     ```
 
@@ -404,6 +484,7 @@ If you want to learn more about building native executables, please consult http
 - _[Podman](https://podman.io/)_ or _[Docker](https://www.docker.com/)_ container-runtime environment for native compilation
 - The _[kn](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.7/html/serverless/installing-kn)_ CLI tool is installed
 - User has self-provisioner privilege or has access to a working OpenShift project
+- An [**AMQP 1.0 protocol**](https://www.amqp.org/) compliant broker should already be installed and running. [**Red Hat AMQ 7.8 broker on OpenShift**](https://access.redhat.com/documentation/en-us/red_hat_amq/2020.q4/html/deploying_amq_broker_on_openshift/index) with an SSL-enabled AMQP acceptor has been used for testing.
 
 #### Instructions
 
@@ -417,12 +498,22 @@ If you want to learn more about building native executables, please consult http
     oc new-project camel-quarkus-native --display-name="Apache Camel Quarkus Apps - Native Mode"
     ```
 
-3. Build a Linux executable using a container build. Compiling a Quarkus application to a native executable consumes a lot of memory during analysis and optimization. You can limit the amount of memory used during native compilation by setting the `quarkus.native.native-image-xmx` configuration property. Setting low memory limits might increase the build time.
+3. Create the `quarkus-amqpbroker-connection-secret` containing the _QUARKUS QPID JMS_ [configuration options](https://github.com/amqphub/quarkus-qpid-jms#configuration). These options are leveraged by the _Camel Quarkus AMQP_ extension to connect to an AMQP broker. 
+
+    :warning: _Replace values with your AMQP broker environment_
+    ```zsh
+    oc create secret generic quarkus-amqpbroker-connection-secret \
+    --from-literal=quarkus.qpid-jms.url="amqps://amq-ssl-broker-amqp-0-svc.amq7-broker-cluster.svc:5672?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000" \
+    --from-literal=quarkus.qpid-jms.username="amq-user" \
+    --from-literal=quarkus.qpid-jms.password="P@ssw0rd"
+    ``` 
+
+4. Build a Linux executable using a container build. Compiling a Quarkus application to a native executable consumes a lot of memory during analysis and optimization. You can limit the amount of memory used during native compilation by setting the `quarkus.native.native-image-xmx` configuration property. Setting low memory limits might increase the build time.
     1. For Docker use:
         ```zsh
         ./mvnw package -Pnative -Dquarkus.native.container-build=true \
         -Dquarkus.native.builder-image=registry.access.redhat.com/quarkus/mandrel-20-rhel8:20.1 \
-        -Dquarkus.native.native-image-xmx=6g
+        -Dquarkus.native.native-image-xmx=7g
         ```
     2. For Podman use:
         ```zsh
@@ -450,7 +541,7 @@ If you want to learn more about building native executables, please consult http
     [INFO] ------------------------------------------------------------------------
     ```
 
-4. Create the `camel-quarkus-rhoam-webhook-handler-api` container image using the _OpenShift Docker build_ strategy. This strategy creates a container using a build configuration in the cluster.
+5. Create the `camel-quarkus-rhoam-webhook-handler-api` container image using the _OpenShift Docker build_ strategy. This strategy creates a container using a build configuration in the cluster.
     1. Create a build config based on the [`src/main/docker/Dockerfile.native`](./src/main/docker/Dockerfile.native) file:
         ```zsh
         cat src/main/docker/Dockerfile.native | oc new-build \
@@ -473,15 +564,6 @@ If you want to learn more about building native executables, please consult http
         Push successful
         ```
 
-5. Create the `quarkus-amqpbroker-connection-secret` containing the _QUARKUS QPID JMS_ [configuration options](https://github.com/amqphub/quarkus-qpid-jms#configuration). These options are leveraged by the _Camel Quarkus AMQP_ extension to connect to an AMQP broker. 
-:warning: _Replace with values according to your AMQP broker environment_
-    ```zsh
-    oc create secret generic quarkus-amqpbroker-connection-secret \
-    --from-literal=QUARKUS_QPID-JMS_URL="amqps://amq-ssl-broker-amqp-0-svc.amq7-broker-cluster.svc:5672?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000" \
-    --from-literal=QUARKUS_QPID-JMS_USERNAME="amq-user" \
-    --from-literal=QUARKUS_QPID-JMS_PASSWORD="P@ssw0rd"
-    ```
-
 6. Deploy the `camel-quarkus-rhoam-webhook-handler-api` as a serverless application.
     ```zsh
     kn service create camel-quarkus-rhoam-webhook-handler-api \
@@ -502,16 +584,21 @@ If you want to learn more about building native executables, please consult http
 
 ```zsh
 [...]
-2021-05-15 12:49:24,464 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: send-to-amqp-queue-route started and consuming from: direct://sendToAMQPQueue
-2021-05-15 12:49:24,464 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: ping-webhook-route started and consuming from: direct://pingWebhook
-2021-05-15 12:49:24,465 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: generate-error-response-route started and consuming from: direct://generateErrorResponse
-2021-05-15 12:49:24,469 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: get-openapi-spec-route started and consuming from: platform-http:///openapi.json
-2021-05-15 12:49:24,470 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: webhook-amqpbridge-ping-route started and consuming from: platform-http:///webhook/amqpbridge
-2021-05-15 12:49:24,470 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: webhook-amqpbridge-handler-route started and consuming from: platform-http:///webhook/amqpbridge
-2021-05-15 12:49:24,471 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Total 6 routes, of which 6 are started
-2021-05-15 12:49:24,471 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Apache Camel 3.4.2 (camel-1) started in 0.118 seconds
-2021-05-15 12:49:24,546 INFO  [io.quarkus] (main) camel-quarkus-rhoam-webhook-handler-api 1.0.0 on JVM (powered by Quarkus 1.7.5.Final-redhat-00007) started in 1.215s. Listening on: http://0.0.0.0:8080
-2021-05-15 12:49:24,547 INFO  [io.quarkus] (main) Profile prod activated.
+2021-05-16 11:12:37,052 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Apache Camel 3.4.2 (camel-1) is starting
+2021-05-16 11:12:37,053 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) StreamCaching is enabled on CamelContext: camel-1
+2021-05-16 11:12:37,056 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Using HealthCheck: camel-health
+[...]
+2021-05-16 11:12:37,071 INFO  [org.apa.cam.imp.eng.DefaultStreamCachingStrategy] ](main) StreamCaching in use with spool directory: /tmp/camel/camel-tmp-43EB8F0221CD24E-0000000000000000 and rules: [Spool > 128K body size]
+2021-05-16 11:12:37,072 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: ping-webhook-route started and consuming from: direct://pingWebhook
+2021-05-16 11:12:37,073 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: generate-error-response-route started and consuming from: direct://generateErrorResponse
+2021-05-16 11:12:37,073 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: send-to-amqp-queue-route started and consuming from: direct://sendToAMQPQueue
+2021-05-16 11:12:37,078 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: get-openapi-spec-route started and consuming from: platform-http:///openapi.json
+2021-05-16 11:12:37,078 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: webhook-amqpbridge-ping-route started and consuming from: platform-http:///webhook/amqpbridge
+2021-05-16 11:12:37,079 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: webhook-amqpbridge-handler-route started and consuming from: platform-http:///webhook/amqpbridge
+2021-05-16 11:12:37,079 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Total 6 routes, of which 6 are started
+2021-05-16 11:12:37,079 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Apache Camel 3.4.2 (camel-1) started in 0.026 seconds
+2021-05-16 11:12:37,163 INFO  [io.quarkus] (main) camel-quarkus-rhoam-webhook-handler-api 1.0.0 on JVM (powered by Quarkus 1.7.5.Final-redhat-00007) started in 1.642s. Listening on: http://0.0.0.0:8080
+2021-05-16 11:12:37,164 INFO  [io.quarkus] (main) Profile prod activated.
 [...]
 ```
 
@@ -530,34 +617,4 @@ If you want to learn more about building native executables, please consult http
 2021-05-15 21:18:33,904 INFO  [io.quarkus] (main) camel-quarkus-rhoam-webhook-handler-api 1.0.0 native (powered by Quarkus 1.7.5.Final-redhat-00007) started in 0.105s. Listening on: http://0.0.0.0:8080
 2021-05-15 21:18:33,904 INFO  [io.quarkus] (main) Profile prod activated.
 [...]
-```
-
-
-```zsh
-jean-macbookair:~ # oc set env deployment/camel-quarkus-rhoam-webhook-handler-api \
-QUARKUS_QPID-JMS_URL="amqps://amq-ssl-broker-amqp-0-svc.amq7-broker-cluster.svc:5672?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000" \
-QUARKUS_QPID-JMS_USERNAME=amq-user \
-QUARKUS_QPID-JMS_PASSWORD=P@ssw0rd
-deployment.apps/camel-quarkus-rhoam-webhook-handler-api updated
-```
-```zsh
-jean-macbookair:~ # oc set env dc/camel-quarkus-rhoam-webhook-handler-api \
-QUARKUS_QPID-JMS_URL="amqps://amq-ssl-broker-amqp-0-svc.amq7-broker-cluster.svc:5672?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000" \
-QUARKUS_QPID-JMS_USERNAME=amq-user \
-QUARKUS_QPID-JMS_PASSWORD=P@ssw0rd
-deploymentconfig.apps.openshift.io/camel-quarkus-rhoam-webhook-handler-api updated
-jean-macbookair:~ # oc rollout latest dc/camel-quarkus-rhoam-webhook-handler-api
-deploymentconfig.apps.openshift.io/camel-quarkus-rhoam-webhook-handler-api rolled out
-```
-
-```zsh
-oc create secret generic quarkus-amqpbroker-connection-secret \
---from-literal=QUARKUS_QPID-JMS_URL="amqps://amq-ssl-broker-amqp-0-svc.amq7-broker-cluster.svc:5672?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000" \
---from-literal=QUARKUS_QPID-JMS_USERNAME=amq-user \
---from-literal=QUARKUS_QPID-JMS_PASSWORD=P@ssw0rd
-```
-```zsh
-kn service update camel-quarkus-rhoam-webhook-handler-api \
---env-from secret:quarkus-amqpbroker-connection-secret \
---
 ```
