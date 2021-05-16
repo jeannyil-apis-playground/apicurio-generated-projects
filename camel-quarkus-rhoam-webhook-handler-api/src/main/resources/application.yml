@@ -30,6 +30,16 @@ quarkus:
         #     initial-delay: 0
         #     period: 30
 
+    # Quarkus kubernetes config extension
+    kubernetes-config:
+        # Enable to look up the configuration from the API server
+        enabled: true
+        secrets:
+            # Secrets (list of strings) to look for in the namespace that the Kubernetes Client has been configured for 
+            ~: quarkus-amqpbroker-connection-secret
+            # Enable to generate the necessary role and corresponding role binding
+            enabled: true
+            
     ## Configuration of the Quarkus Qpid JMS extension leveraged by Camel Quarkus AMQP extension
     qpid-jms:
         # Connection URL for the injected factory
