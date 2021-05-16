@@ -137,24 +137,83 @@ oc import-image --confirm openjdk-11-ubi8 \
     --from=registry.access.redhat.com/ubi8/openjdk-11 \
     -n openshift
     ```
-2. Create the `camel-quarkus-rhoam-webhook-handler-api` OpenShift application from the git repository
+2. Create the `view-secrets` role and bind it, along with the `view` cluster role, to the service account used to run the quarkus application. These permissions allow the service account to access secrets.
+```zsh
+oc create -f <(echo '
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/name: camel-quarkus-rhoam-webhook-handler-api
+    app.kubernetes.io/version: 1.0.0
+    app.openshift.io/runtime: quarkus
+  name: view-secrets
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/name: camel-quarkus-rhoam-webhook-handler-api
+    app.kubernetes.io/version: 1.0.0
+    app.openshift.io/runtime: quarkus
+  name: default:view
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: view
+subjects:
+- kind: ServiceAccount
+  name: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/name: camel-quarkus-rhoam-webhook-handler-api
+    app.kubernetes.io/version: 1.0.0
+    app.openshift.io/runtime: quarkus
+  name: default:view-secrets
+roleRef:
+  kind: Role
+  apiGroup: rbac.authorization.k8s.io
+  name: view-secrets
+subjects:
+- kind: ServiceAccount
+  name: default
+');
+```
+
+3. Create the `camel-quarkus-rhoam-webhook-handler-api` OpenShift application from the git repository
     ```zsh
     oc new-app https://github.com/jeannyil-apis-playground/apicurio-generated-projects.git \
     --context-dir=camel-quarkus-rhoam-webhook-handler-api \
     --name=camel-quarkus-rhoam-webhook-handler-api \
-    --image-stream="openshift/openjdk-11-ubi8"
+    --image-stream="openshift/openjdk-11-ubi8" \
+    --labels=app.kubernetes.io/name=camel-quarkus-rhoam-webhook-handler-api \
+    --labels=app.kubernetes.io/version=1.0.0 \
+    --labels=app.openshift.io/runtime=quarkus
     ```
-3. Follow the log of the S2I build
+4. Follow the log of the S2I build
     ```zsh
     oc logs bc/camel-quarkus-rhoam-webhook-handler-api -f
     ```
     ```zsh
     Cloning "https://github.com/jeannyil-apis-playground/apicurio-generated-projects.git" ...
-        Commit: e658f9ed76fb99ff4b3c6719f9a65c01ea6d2ca0 (Minor update)
-        Author: Jean Armand Nyilimbibi <jean.nyilimbibi@gmail.com>
-        Date:   Sat May 15 14:27:23 2021 +0200
+            Commit: 8c95044a0711cec1f62b893f03b023547656e5b7 (Updated README)
+            Author: Jean Armand Nyilimbibi <jean.nyilimbibi@gmail.com>
+            Date:   Sun May 16 17:00:02 2021 +0200
     [...]
-    Successfully pushed image-registry.openshift-image-registry.svc:5000/camel-quarkus-jvm/camel-quarkus-rhoam-webhook-handler-api@sha256:e8e6d8e874fae9ba9616b971225b8307b6aac2911980f50d3fab2b12a51e25da
+    Successfully pushed image-registry.openshift-image-registry.svc:5000/camel-quarkus-jvm/camel-quarkus-rhoam-webhook-handler-api@sha256:b5932e1626e4ab631fe2d9ca41d8e9342acad2d5ef90e3bd99fc3cc56e85731e
     Push successful
     ```
 4. Create a non-secure route to expose the `camel-quarkus-rhoam-webhook-handler-api` service outside the OpenShift cluster
