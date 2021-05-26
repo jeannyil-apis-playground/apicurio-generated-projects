@@ -1,6 +1,6 @@
 # Camel-Quarkus-RHOAM-Webhook-Handler-Api project
 
-This project leverages **Red Hat build of Quarkus 1.7.x**, the Supersonic Subatomic Java Framework.
+This project leverages **Red Hat build of Quarkus 1.11.x**, the Supersonic Subatomic Java Framework.
 
 It exposes the following RESTful service endpoints  using **Apache Camel REST DSL** and the **Apache Camel Quarkus Platform HTTP** extension:
 - `/webhook/amqpbridge` : 
