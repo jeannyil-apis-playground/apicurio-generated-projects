@@ -22,11 +22,11 @@ quarkus:
         expose: true
         replicas: 2
         # liveness-probe:
-        #     http-action-path: /health/live
+        #     http-action-path: /q/health/live
         #     initial-delay: 0
         #     period: 30
         # readiness-probe:
-        #     http-action-path: /health/ready
+        #     http-action-path: /q/health/ready
         #     initial-delay: 0
         #     period: 30
 
@@ -54,7 +54,7 @@ quarkus:
         # If all character sets should be added to the native image. This increases image size
         add-all-charsets: true
         # The docker image to use to do the image build
-        builder-image: registry.access.redhat.com/quarkus/mandrel-20-rhel8:20.1
+        builder-image: quay.io/quarkus/ubi-quarkus-mandrel:20.3-java11
 
     ## Camel Quarkus
     camel:
