@@ -7,8 +7,8 @@ It exposes the following RESTful service endpoints  using **Apache Camel REST DS
     - Webhook ping endpoint through the `GET` HTTP method.
     - Sends RHOAM Admin/Developer Portal webhook XML event to an AMQP address (`RHOAM.WEBHOOK.EVENTS.QUEUE`) through the `POST` HTTP method.
 - `/openapi.json`: returns the OpenAPI 3.0 specification for the service.
-- `/health` : returns the _Camel Quarkus MicroProfile_ health checks
-- `/metrics` : the _Camel Quarkus MicroProfile_ metrics
+- `/q/health` : returns the _Camel Quarkus MicroProfile_ health checks
+- `/q/metrics` : the _Camel Quarkus MicroProfile_ metrics
 
 Moreover, this project leverages the [**Quarkus Kubernetes-Config** extenstion](https://quarkus.io/guides/kubernetes-config) in order to customize the run-time AMQP broker connection parameters according to your environment through the `quarkus-amqpbroker-connection-secret` secret. For instance:
 ```yaml
@@ -93,39 +93,43 @@ oc import-image --confirm openjdk-11-ubi8 \
 ```
 ```zsh
 [...]
-[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Deploying target 'openshift' since it has the highest priority among the implicitly enabled deployment targets
+INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Selecting target 'openshift' since it has the highest priority among the implicitly enabled deployment targets
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeploy] Kubernetes API Server at 'https://api.jeannyil.sandbox438.opentlc.com:6443/' successfully contacted.
 [INFO] [io.quarkus.arc.processor.BeanProcessor] Found unrecommended usage of private members (use package-private instead) in application beans:
         - @Inject field io.github.jeannyil.quarkus.camel.routes.RhoamWebhookEventsHandlerApiRoute#camelctx
 [INFO] [io.quarkus.deployment.pkg.steps.JarResultBuildStep] Building thin jar: /Users/jeannyil/Workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar
 [...]
-[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Performing s2i binary build with jar on server: https://api.jeannyil.sandbox438.opentlc.com:6443/ in namespace:camel-quarkus-jvm.
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Performing openshift binary build with jar on server: https://api.jeannyil.sandbox438.opentlc.com:6443/ in namespace:camel-quarkus-jvm.
 [...]
-[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Pushing image image-registry.openshift-image-registry.svc:5000/camel-quarkus-jvm/camel-quarkus-rhoam-webhook-handler-api:1.0.0 ...
-[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Getting image source signatures
-[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Copying blob sha256:8f403cb21126270e2d1551022b82c77c695ce40c9812795daf7ad77a05c2b9f6
-[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Copying blob sha256:08506ddf42e87973062272df927a2cffa6476b7572b552d3ec2cf905c8b0ff3f
-[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Copying blob sha256:65c0f2178ac8a3c28f48efd26ccf16bd6f344fa88d1aa20efd3a25d5f99587c0
-[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Copying blob sha256:9adb6891eac3949dc8ce73ad1f0ee49f7c385cdc8e7efdf5de8a8c1bd1d68de9
-[INFO] [io.quarkus.container.image.s2i.deployment.S2iProcessor] Copying config sha256:b9882d15e5a02c38ef4012b35f5c66781b6564a8e7acd2776de7f661a764cf24
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Pushing image image-registry.openshift-image-registry.svc:5000/camel-quarkus-jvm/camel-quarkus-rhoam-webhook-handler-api:1.0.0 ...
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Getting image source signatures
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:08506ddf42e87973062272df927a2cffa6476b7572b552d3ec2cf905c8b0ff3f
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:8f403cb21126270e2d1551022b82c77c695ce40c9812795daf7ad77a05c2b9f6
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:65c0f2178ac8a3c28f48efd26ccf16bd6f344fa88d1aa20efd3a25d5f99587c0
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:adf0b6c03b289cee94a94132bb6d6d17068dbbdb90cbd3d962a41bc8fb9bfbaf
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying config sha256:b4337ecbf2a5e68e9894418af9270e69816d5278d31414caa61e18aaa539c2b0
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Writing manifest to image destination
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Storing signatures
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Successfully pushed image-registry.openshift-image-registry.svc:5000/camel-quarkus-jvm/camel-quarkus-rhoam-webhook-handler-api@sha256:d6785370303641ac73c34871769cf30bb255fb121593774d7555e38b45142e7a
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Push successful
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Deploying to openshift server: https://api.jeannyil.sandbox438.opentlc.com:6443/ in namespace: camel-quarkus-jvm.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: ServiceAccount camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Service camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Role view-secrets.
-[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: RoleBinding camel-quarkus-rhoam-webhook-handler-api:view.
-[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: RoleBinding camel-quarkus-rhoam-webhook-handler-api:view-secrets.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: RoleBinding camel-quarkus-rhoam-webhook-handler-api-view.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: RoleBinding camel-quarkus-rhoam-webhook-handler-api-view-secrets.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: ImageStream camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: ImageStream openjdk-11.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: BuildConfig camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: DeploymentConfig camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Route camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] The deployed application can be accessed at: http://camel-quarkus-rhoam-webhook-handler-api-camel-quarkus-jvm.apps.jeannyil.sandbox438.opentlc.com
-[INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 90857ms
+[INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 131045ms
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  01:45 min
-[INFO] Finished at: 2021-05-16T13:12:11+02:00
+[INFO] Total time:  02:28 min
+[INFO] Finished at: 2021-05-26T23:31:55+02:00
 [INFO] ------------------------------------------------------------------------
 ```
 
@@ -394,9 +398,9 @@ subjects:
         ]
     }
     ```
-4. Test the `/health` endpoint
+4. Test the `/q/health` endpoint
     ```zsh
-    http -v $URL/health
+    http -v $URL/q/health
     ```
     ```zsh
     HTTP/1.1 200 OK
@@ -427,9 +431,9 @@ subjects:
         "status": "UP"
     }
     ```
-5. Test the `/health/live` endpoint
+5. Test the `/q/health/live` endpoint
     ```zsh
-    http -v $URL/health/live
+    http -v $URL/q/health/live
     ```
     ```zsh
     HTTP/1.1 200 OK
@@ -448,9 +452,9 @@ subjects:
         "status": "UP"
     }
     ```
-6. Test the `/health/ready` endpoint
+6. Test the `/q/health/ready` endpoint
     ```zsh
-    http -v $URL/health/ready
+    http -v $URL/q/health/ready
     ```
     ```zsh
     HTTP/1.1 200 OK
@@ -477,9 +481,9 @@ subjects:
         "status": "UP"
     }
     ```
-7. Test the `/metrics` endpoint
+7. Test the `/q/metrics` endpoint
     ```zsh
-    http -v $URL/metrics
+    http -v $URL/q/metrics
     ```
     ```zsh
     [...]
@@ -571,20 +575,20 @@ If you want to learn more about building native executables, please consult http
     1. For Docker use:
         ```zsh
         ./mvnw package -Pnative -Dquarkus.native.container-build=true \
-        -Dquarkus.native.builder-image=registry.access.redhat.com/quarkus/mandrel-20-rhel8:20.1 \
+        -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel:20.3-java11 \
         -Dquarkus.native.native-image-xmx=7g
         ```
     2. For Podman use:
         ```zsh
         ./mvnw package -Pnative -Dquarkus.native.container-build=true \
         -Dquarkus.native.container-runtime=podman \
-        -Dquarkus.native.builder-image=registry.access.redhat.com/quarkus/mandrel-20-rhel8:20.1 \
+        -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel:20.3-java11 \
         -Dquarkus.native.native-image-xmx=7g
         ```
     ```zsh
     [...]
     [INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildStep] Running Quarkus native-image plugin on GraalVM Version 20.1.0.4_0-1 (Mandrel Distribution) (Java Version 11.0.10+9-LTS)
-    [INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildStep] docker run -v /Users/jnyilimb/workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-native-image-source-jar:/project:z --env LANG=C --rm registry.access.redhat.com/quarkus/mandrel-20-rhel8:20.1 -J-Dsun.nio.ch.maxUpdateArraySize=100 -J-Djava.util.logging.manager=org.jboss.logmanager.LogManager -J-Dcom.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize=true -J-Dvertx.logger-delegate-factory-class-name=io.quarkus.vertx.core.runtime.VertxLogDelegateFactory -J-Dvertx.disableDnsResolver=true -J-Dio.netty.leakDetection.level=DISABLED -J-Dio.netty.allocator.maxOrder=1 -J-Duser.language=en -J-Dfile.encoding=UTF-8 --initialize-at-build-time= -H:InitialCollectionPolicy=com.oracle.svm.core.genscavenge.CollectionPolicy\$BySpaceAndTime -H:+JNI -jar camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar -H:FallbackThreshold=0 -H:+ReportExceptionStackTraces -J-Xmx7g -H:+AddAllCharsets -H:EnableURLProtocols=http,https --enable-all-security-services -H:-UseServiceLoaderFeature -H:+StackTrace camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner
+    [INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildStep] docker run -v /Users/jnyilimb/workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-native-image-source-jar:/project:z --env LANG=C --rm quay.io/quarkus/ubi-quarkus-mandrel:20.3-java11 -J-Dsun.nio.ch.maxUpdateArraySize=100 -J-Djava.util.logging.manager=org.jboss.logmanager.LogManager -J-Dcom.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize=true -J-Dvertx.logger-delegate-factory-class-name=io.quarkus.vertx.core.runtime.VertxLogDelegateFactory -J-Dvertx.disableDnsResolver=true -J-Dio.netty.leakDetection.level=DISABLED -J-Dio.netty.allocator.maxOrder=1 -J-Duser.language=en -J-Dfile.encoding=UTF-8 --initialize-at-build-time= -H:InitialCollectionPolicy=com.oracle.svm.core.genscavenge.CollectionPolicy\$BySpaceAndTime -H:+JNI -jar camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar -H:FallbackThreshold=0 -H:+ReportExceptionStackTraces -J-Xmx7g -H:+AddAllCharsets -H:EnableURLProtocols=http,https --enable-all-security-services -H:-UseServiceLoaderFeature -H:+StackTrace camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner
     [...]
     [INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 3271708ms
     [INFO] ------------------------------------------------------------------------
@@ -695,22 +699,21 @@ subjects:
 
 ```zsh
 [...]
-2021-05-16 11:12:37,052 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Apache Camel 3.4.2 (camel-1) is starting
-2021-05-16 11:12:37,053 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) StreamCaching is enabled on CamelContext: camel-1
-2021-05-16 11:12:37,056 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Using HealthCheck: camel-health
+2021-05-26 21:32:09,706 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Apache Camel 3.7.0 (camel-1) is starting
+2021-05-26 21:32:09,706 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) StreamCaching is enabled on CamelContext: camel-1
 [...]
-2021-05-16 11:12:37,071 INFO  [org.apa.cam.imp.eng.DefaultStreamCachingStrategy] ](main) StreamCaching in use with spool directory: /tmp/camel/camel-tmp-43EB8F0221CD24E-0000000000000000 and rules: [Spool > 128K body size]
-2021-05-16 11:12:37,072 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: ping-webhook-route started and consuming from: direct://pingWebhook
-2021-05-16 11:12:37,073 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: generate-error-response-route started and consuming from: direct://generateErrorResponse
-2021-05-16 11:12:37,073 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: send-to-amqp-queue-route started and consuming from: direct://sendToAMQPQueue
-2021-05-16 11:12:37,078 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: get-openapi-spec-route started and consuming from: platform-http:///openapi.json
-2021-05-16 11:12:37,078 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: webhook-amqpbridge-ping-route started and consuming from: platform-http:///webhook/amqpbridge
-2021-05-16 11:12:37,079 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: webhook-amqpbridge-handler-route started and consuming from: platform-http:///webhook/amqpbridge
-2021-05-16 11:12:37,079 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Total 6 routes, of which 6 are started
-2021-05-16 11:12:37,079 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Apache Camel 3.4.2 (camel-1) started in 0.026 seconds
-2021-05-16 11:12:37,163 INFO  [io.quarkus] (main) camel-quarkus-rhoam-webhook-handler-api 1.0.0 on JVM (powered by Quarkus 1.7.5.Final-redhat-00007) started in 1.642s. Listening on: http://0.0.0.0:8080
-2021-05-16 11:12:37,164 INFO  [io.quarkus] (main) Profile prod activated.
-[...]
+2021-05-26 21:32:09,727 INFO  [org.apa.cam.imp.eng.DefaultStreamCachingStrategy] (main) StreamCaching in use with spool directory: /tmp/camel/camel-tmp-63E6F0DFC10B439-0000000000000000 and rules: [Spool > 128K body size]
+2021-05-26 21:32:09,727 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: generate-error-response-route started and consuming from: direct://generateErrorResponse
+2021-05-26 21:32:09,729 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: send-to-amqp-queue-route started and consuming from: direct://sendToAMQPQueue
+2021-05-26 21:32:09,729 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: ping-webhook-route started and consuming from: direct://pingWebhook
+2021-05-26 21:32:09,734 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: get-openapi-spec-route started and consuming from: platform-http:///openapi.json
+2021-05-26 21:32:09,735 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: webhook-amqpbridge-ping-route started and consuming from: platform-http:///webhook/amqpbridge
+2021-05-26 21:32:09,735 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: webhook-amqpbridge-handler-route started and consuming from: platform-http:///webhook/amqpbridge
+2021-05-26 21:32:09,736 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Total 6 routes, of which 6 are started
+2021-05-26 21:32:09,736 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Apache Camel 3.7.0 (camel-1) started in 30ms
+2021-05-26 21:32:09,824 INFO  [io.quarkus] (main) camel-quarkus-rhoam-webhook-handler-api 1.0.0 on JVM (powered by Quarkus 1.11.6.Final-redhat-00001) started in 1.793s. Listening on: http://0.0.0.0:8080
+2021-05-26 21:32:09,824 INFO  [io.quarkus] (main) Profile prod activated.
+2021-05-26 21:32:09,824 INFO  [io.quarkus] (main) Installed features: [camel-amqp, camel-attachments, camel-bean, camel-core, camel-direct, camel-jackson, camel-jms, camel-microprofile-health, camel-microprofile-metrics, camel-openapi-java, camel-platform-http, camel-rest, camel-suport-xalan, camel-support-common, camel-support-commons-logging, camel-support-jackson-dataformat-xml, camel-support-spring, camel-xml-jaxb, camel-xpath, cdi, config-yaml, kubernetes, kubernetes-client, mutiny, qpid-jms, smallrye-context-propagation, smallrye-health, smallrye-metrics, vertx, vertx-web]
 ```
 
 ### Native mode
@@ -730,7 +733,7 @@ subjects:
 2021-05-16 19:39:05,811 INFO  [org.apa.cam.imp.eng.InternalRouteStartupManager] (main) Route: webhook-amqpbridge-handler-route started and consuming from: platform-http:///webhook/amqpbridge
 2021-05-16 19:39:05,811 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Total 6 routes, of which 6 are started
 2021-05-16 19:39:05,811 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Apache Camel 3.4.2 (camel-1) started in 0.002 seconds
-2021-05-16 19:39:05,829 INFO  [io.quarkus] (main) camel-quarkus-rhoam-webhook-handler-api 1.0.0 native (powered by Quarkus 1.7.5.Final-redhat-00007) started in 0.154s. Listening on: http://0.0.0.0:8080
+2021-05-16 19:39:05,829 INFO  [io.quarkus] (main) camel-quarkus-rhoam-webhook-handler-api 1.0.0 native (powered by Quarkus 1.11.6.Final-redhat-00001) started in 0.154s. Listening on: http://0.0.0.0:8080
 2021-05-16 19:39:05,829 INFO  [io.quarkus] (main) Profile prod activated.
 [...]
 ```
