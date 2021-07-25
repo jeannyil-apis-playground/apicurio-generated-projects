@@ -123,7 +123,7 @@ INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Selecting target 'op
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: BuildConfig camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: DeploymentConfig camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Route camel-quarkus-rhoam-webhook-handler-api.
-[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] The deployed application can be accessed at: http://camel-quarkus-rhoam-webhook-handler-api-camel-quarkus-jvm.apps.cluster-7kzfp.7kzfp.sandbox104.opentlc.com
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] The deployed application can be accessed at: http://camel-quarkus-rhoam-webhook-handler-api-camel-quarkus-jvm.apps.jeannyil.sandbox1047.opentlc.com
 [INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 131045ms
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
@@ -393,7 +393,7 @@ subjects:
         "servers": [
             {
                 "description": "API Backend URL",
-                "url": "http://rhoam-webhook-events-handler-api.apps.cluster-7kzfp.7kzfp.sandbox104.opentlc.com"
+                "url": "http://rhoam-webhook-events-handler-api.apps.jeannyil.sandbox1047.opentlc.com"
             }
         ]
     }
