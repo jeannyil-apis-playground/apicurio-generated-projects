@@ -43,7 +43,7 @@ quarkus:
     ## Configuration of the Quarkus Qpid JMS extension leveraged by Camel Quarkus AMQP extension
     qpid-jms:
         # Connection URL for the injected factory
-        url: amqps://amq-ssl-broker-amqp-0-svc-rte-amq7-broker-cluster.apps.jeannyil.sandbox1148.opentlc.com:443?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000
+        url: amqps://amq-ssl-broker-amqp-0-svc-rte-amq7-broker-cluster.apps.jeannyil.sandbox452.opentlc.com:443?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000
         # Username to set on the factory
         username: amq-user
         # Password to set on the factory
