@@ -33,11 +33,13 @@ public class WebhookPingRoute extends RouteBuilder {
         
         from(DirectEndpointConstants.DIRECT_PING_WEBHOOK)
 			.routeId("ping-webhook-route")
+			.log(LoggingLevel.INFO, logName, ">>> ${routeId} - pingWebhook request: in.headers[${headers}] - in.body[${body}]")
 			.setBody()
 				.method("responseMessageHelper", "generateOKResponseMessage()")
 				.id("set-pingOK-reponseMessage")
             .end()
             .marshal().json(JsonLibrary.Jackson, true).id("marshal-pingOK-responseMessage-to-json")
+			.log(LoggingLevel.INFO, logName, ">>> ${routeId} - pingWebhook response: headers:[${headers}] - body:[${body}]")
 		;
 
     }
