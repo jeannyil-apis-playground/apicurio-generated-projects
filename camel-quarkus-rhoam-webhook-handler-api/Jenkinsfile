@@ -186,7 +186,7 @@ def promoteServiceSetup(svcName, registry, imageNameSpace, tagName, projName) {
             --from-literal=quarkus.qpid-jms.password=${AMQP_BROKER_PWD} -n ${projName} 2> /dev/null
         """
     } catch (Exception e) {
-        echo "skip secret creation related exception, the resource may already exist. " + e.getMessage();
+        echo "skip quarkus-amqpbroker-connection-secret creation related exception, the resource may already exist. " + e.getMessage();
     }
 
     try {
@@ -234,12 +234,31 @@ def build(folderName) {
 
 }
 def deploy(folderName, projName) {
+
+    try {
+        sh """
+            oc delete secret quarkus-amqpbroker-connection-secret -n ${projName} 2> /dev/null
+        """
+    } catch (Exception e) {
+        echo "skip quarkus-amqpbroker-connection-secret cleanup related exception, the resource may not exist. " + e.getMessage();
+    }
+
+    try {
+        echo "Creating the quarkus-amqpbroker-connection-secret in ${projName} namespace ..."
+        sh """ 
+            oc create secret generic quarkus-amqpbroker-connection-secret \
+            --from-literal=quarkus.qpid-jms.url=${AMQP_BROKER_URL} \
+            --from-literal=quarkus.qpid-jms.username=${AMQP_BROKER_USER} \
+            --from-literal=quarkus.qpid-jms.password=${AMQP_BROKER_PWD} -n ${projName} 2> /dev/null
+        """
+    } catch (Exception e) {
+        echo "skip quarkus-amqpbroker-connection-secret creation related exception, the resource may already exist. " + e.getMessage();
+    }
+
     sh """
-    cd ${folderName}
-
-    oc project ${projName}
-
-    mvn package -Dquarkus.kubernetes.deploy=true -Dquarkus.openshift.replicas=1
+        cd ${folderName}
+        oc project ${projName}
+        mvn package -Dquarkus.kubernetes.deploy=true -Dquarkus.openshift.replicas=1
     """
 }
 
