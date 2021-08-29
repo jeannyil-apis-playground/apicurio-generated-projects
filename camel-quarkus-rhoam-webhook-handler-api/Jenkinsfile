@@ -193,17 +193,28 @@ def promoteServiceSetup(svcName, registry, imageNameSpace, tagName, projName) {
         echo "Creating the ${svcName} OpenShift resources in ${projName} namespace ..."
         sh """ 
             oc replace --force -f ${svcName}/target/kubernetes/openshift.yml -n ${projName} 2> /dev/null
-            oc delete bc ${svcName} -n ${projName} 2> /dev/null
-            oc delete is ${svcName} -n ${projName} 2> /dev/null
-            oc delete is ubi-quarkus-native-binary-s2i -n ${projName} 2> /dev/null
-            oc rollout pause dc ${svcName} -n ${projName}  2> /dev/null
-            oc patch dc ${svcName} -p '{"spec": {"template": {"spec": {"containers": [{"name": "${svcName}","image": "${registry}/${imageNameSpace}/${svcName}:${tagName}"}]}}}}' -n ${projName} 2> /dev/null
-            oc patch dc ${svcName} -p '{"spec": {"template": {"spec": {"containers": [{"name": "${svcName}","imagePullPolicy": "Always"}]}}}}' -n ${projName} 2> /dev/null
-            oc rollout resume dc ${svcName} -n ${projName}  2> /dev/null
         """
     } catch (Exception e) {
         echo "skip dc/svc/roleBindings/route creation related exception, the resources may already exist. " + e.getMessage();
     }
+
+    try {
+        echo "Delete unnecessary ${svcName} OpenShift resources (bc and is) in ${projName} namespace ..."
+        sh """ 
+            oc delete bc ${svcName} -n ${projName} 2> /dev/null
+            oc delete is ${svcName} -n ${projName} 2> /dev/null
+        """
+    } catch (Exception e) {
+        echo "skip unnecessary bc/is cleanup related exception, the resources may not exist. " + e.getMessage();
+    }
+
+    echo "Preparing the ${svcName} deploymentConfig resource in ${projName} namespace ..."
+    sh """ 
+        oc rollout pause dc ${svcName} -n ${projName}  2> /dev/null
+        oc patch dc ${svcName} -p '{"spec": {"template": {"spec": {"containers": [{"name": "${svcName}","image": "${registry}/${imageNameSpace}/${svcName}:${tagName}"}]}}}}' -n ${projName} 2> /dev/null
+        oc patch dc ${svcName} -p '{"spec": {"template": {"spec": {"containers": [{"name": "${svcName}","imagePullPolicy": "Always"}]}}}}' -n ${projName} 2> /dev/null
+        oc rollout resume dc ${svcName} -n ${projName}  2> /dev/null
+    """
 }
 
 def promoteService (imageNamespace, projName, svcName, sourceTag, destinationTag) {
