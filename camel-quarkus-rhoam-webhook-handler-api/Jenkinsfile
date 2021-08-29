@@ -96,7 +96,7 @@ pipeline {
                     retry(5) {
                         serviceName = 'camel-quarkus-rhoam-webhook-handler-api'
                         smokeTestUriOperation = '/webhook/amqpbridge'
-                        makeGetRequest("http://${serviceName}.${DEV_PROJECT}.svc:8080${smokeTestUriOperation}")
+                        makeGetRequest("http://${serviceName}.${TEST_PROJECT}.svc:8080${smokeTestUriOperation}")
                     }
                 }
             }
@@ -152,7 +152,7 @@ pipeline {
                     retry(5) {
                         serviceName = 'camel-quarkus-rhoam-webhook-handler-api'
                         smokeTestUriOperation = '/webhook/amqpbridge'
-                        makeGetRequest("http://${serviceName}.${DEV_PROJECT}.svc:8080${smokeTestUriOperation}")
+                        makeGetRequest("http://${serviceName}.${PROD_PROJECT}.svc:8080${smokeTestUriOperation}")
                     }
                 }
             }
