@@ -71,9 +71,9 @@ You may customize the [**AMQP broker connection parameters**](https://github.com
     :warning: _Replace values with your AMQP broker environment_
     ```zsh
     oc create secret generic quarkus-amqpbroker-connection-secret \
-    --from-literal=quarkus.qpid-jms.url="amqps://amq-ssl-broker-amqp-0-svc.amq7-broker-cluster.svc:5672?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000" \
-    --from-literal=quarkus.qpid-jms.username="amq-user" \
-    --from-literal=quarkus.qpid-jms.password="P@ssw0rd"
+    --from-literal=quarkus.qpid-jms.url="amqps://<AMQP_HOST_CHANGE_ME>:<AMQP_PORT_CHANGE_ME>?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000" \
+    --from-literal=quarkus.qpid-jms.username=<CHANGE_ME> \
+    --from-literal=quarkus.qpid-jms.password=<CHANGE_ME>
     ``` 
 
 4. Use either the _**S2I binary workflow**_ or _**S2I source workflow**_ to deploy the `camel-quarkus-rhoam-webhook-handler-api` app as described below.
@@ -94,12 +94,12 @@ oc import-image --confirm openjdk-11-ubi8 \
 ```zsh
 [...]
 INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Selecting target 'openshift' since it has the highest priority among the implicitly enabled deployment targets
-[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeploy] Kubernetes API Server at 'https://api.jeannyil.sandbox430.opentlc.com:6443/' successfully contacted.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeploy] Kubernetes API Server at 'https://api.jeannyil.sandbox706.opentlc.com:6443/' successfully contacted.
 [INFO] [io.quarkus.arc.processor.BeanProcessor] Found unrecommended usage of private members (use package-private instead) in application beans:
         - @Inject field io.github.jeannyil.quarkus.camel.routes.RhoamWebhookEventsHandlerApiRoute#camelctx
 [INFO] [io.quarkus.deployment.pkg.steps.JarResultBuildStep] Building thin jar: /Users/jeannyil/Workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar
 [...]
-[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Performing openshift binary build with jar on server: https://api.jeannyil.sandbox430.opentlc.com:6443/ in namespace:camel-quarkus-jvm.
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Performing openshift binary build with jar on server: https://api.jeannyil.sandbox706.opentlc.com:6443/ in namespace:camel-quarkus-jvm.
 [...]
 [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Pushing image image-registry.openshift-image-registry.svc:5000/camel-quarkus-jvm/camel-quarkus-rhoam-webhook-handler-api:1.0.0 ...
 [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Getting image source signatures
@@ -112,7 +112,7 @@ INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Selecting target 'op
 [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Storing signatures
 [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Successfully pushed image-registry.openshift-image-registry.svc:5000/camel-quarkus-jvm/camel-quarkus-rhoam-webhook-handler-api@sha256:d6785370303641ac73c34871769cf30bb255fb121593774d7555e38b45142e7a
 [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Push successful
-[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Deploying to openshift server: https://api.jeannyil.sandbox430.opentlc.com:6443/ in namespace: camel-quarkus-jvm.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Deploying to openshift server: https://api.jeannyil.sandbox706.opentlc.com:6443/ in namespace: camel-quarkus-jvm.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: ServiceAccount camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Service camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Role view-secrets.
@@ -123,7 +123,7 @@ INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Selecting target 'op
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: BuildConfig camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: DeploymentConfig camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Route camel-quarkus-rhoam-webhook-handler-api.
-[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] The deployed application can be accessed at: http://camel-quarkus-rhoam-webhook-handler-api-camel-quarkus-jvm.apps.jeannyil.sandbox430.opentlc.com
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] The deployed application can be accessed at: http://camel-quarkus-rhoam-webhook-handler-api-camel-quarkus-jvm.apps.jeannyil.sandbox706.opentlc.com
 [INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 131045ms
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
@@ -393,7 +393,7 @@ subjects:
         "servers": [
             {
                 "description": "API Backend URL",
-                "url": "http://rhoam-webhook-events-handler-api.apps.jeannyil.sandbox430.opentlc.com"
+                "url": "http://rhoam-webhook-events-handler-api.apps.jeannyil.sandbox706.opentlc.com"
             }
         ]
     }
@@ -566,9 +566,9 @@ If you want to learn more about building native executables, please consult http
     :warning: _Replace values with your AMQP broker environment_
     ```zsh
     oc create secret generic quarkus-amqpbroker-connection-secret \
-    --from-literal=quarkus.qpid-jms.url="amqps://amq-ssl-broker-amqp-0-svc.amq7-broker-cluster.svc:5672?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000" \
-    --from-literal=quarkus.qpid-jms.username="amq-user" \
-    --from-literal=quarkus.qpid-jms.password="P@ssw0rd"
+    --from-literal=quarkus.qpid-jms.url="amqps://<AMQP_HOST_CHANGE_ME>:<AMQP_PORT_CHANGE_ME>?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000" \
+    --from-literal=quarkus.qpid-jms.username=<CHANGE_ME> \
+    --from-literal=quarkus.qpid-jms.password=<CHANGE_ME>
     ``` 
 
 4. Build a Linux executable using a container build. Compiling a Quarkus application to a native executable consumes a lot of memory during analysis and optimization. You can limit the amount of memory used during native compilation by setting the `quarkus.native.native-image-xmx` configuration property. Setting low memory limits might increase the build time.
