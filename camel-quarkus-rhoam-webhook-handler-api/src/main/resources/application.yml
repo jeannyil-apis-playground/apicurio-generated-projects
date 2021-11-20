@@ -19,8 +19,9 @@ quarkus:
         base-jvm-image: registry.access.redhat.com/ubi8/openjdk-11
         base-native-image: quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0
     openshift:
-        expose: true
         replicas: 2
+        route:
+            expose: true
         # liveness-probe:
         #     http-action-path: /q/health/live
         #     initial-delay: 0
@@ -30,20 +31,31 @@ quarkus:
         #     initial-delay: 0
         #     period: 30
 
+    # OpenTracing configuration. This is leveraged by Camel Quarkus OpenTracing extension
+    jaeger:
+        # The service name
+        service-name: camel-quarkus-rhoam-webhook-handler-api
+        # The sampler type (const, probabilistic, ratelimiting or remote)
+        sampler-type: const
+        # The sampler parameter
+        sampler-param: 1
+        # The traces endpoint to the Collector
+        endpoint: http://localhost:14268/api/traces
+
     # Quarkus kubernetes config extension
     kubernetes-config:
         # Enable to look up the configuration from the API server
         enabled: true
         secrets:
             # Secrets (list of strings) to look for in the namespace that the Kubernetes Client has been configured for 
-            ~: quarkus-amqpbroker-connection-secret
+            ~: quarkus-amqpbroker-connection-secret,quarkus-opentracing-endpoint-secret
             # Enable to generate the necessary role and corresponding role binding
             enabled: true
             
     ## Configuration of the Quarkus Qpid JMS extension leveraged by Camel Quarkus AMQP extension
     qpid-jms:
         # Connection URL for the injected factory
-        url: amqps://amq-ssl-broker-amqp-0-svc-rte-amq7-broker-cluster.apps.jeannyil.sandbox500.opentlc.com:443?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000
+        url: amqps://amq-ssl-broker-amqp-0-svc-rte-amq7-broker-cluster.apps.jeannyil.sandbox1789.opentlc.com:443?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000
         # Username to set on the factory
         username: amq-user
         # Password to set on the factory
@@ -55,6 +67,15 @@ quarkus:
         add-all-charsets: true
         # The docker image to use to do the image build
         builder-image: quay.io/quarkus/ubi-quarkus-mandrel:20.3-java11
+        # A comma separated list of Ant-path style patterns to match resources
+        # that should be <strong>included</strong> in the native executable. By default,
+        # resources not selected by quarkus itself are ignored. Then, inclusion
+        # of additional resources could be triggered with
+        # <code>includePatterns</code>. When the inclusion patterns is too
+        # large, eviction of previously selected resources could be triggered
+        # with <code>excludePatterns</code>.
+        resources:
+            includes: openapi/*
 
     ## Camel Quarkus
     camel:
@@ -79,16 +100,6 @@ quarkus:
             # Reference: https://camel.apache.org/camel-quarkus/latest/user-guide/native-mode.html#reflection
             reflection:
                 include-patterns: java.lang.Exception,org.apache.camel.TypeConversionException
-
-            # A comma separated list of Ant-path style patterns to match resources
-            # that should be <strong>included</strong> in the native executable. By default,
-            # resources not selected by quarkus itself are ignored. Then, inclusion
-            # of additional resources could be triggered with
-            # <code>includePatterns</code>. When the inclusion patterns is too
-            # large, eviction of previously selected resources could be triggered
-            # with <code>excludePatterns</code>.
-            resources:
-                include-patterns: openapi/*
             
     # Register for indexing
     # Reference: https://camel.apache.org/camel-quarkus/latest/user-guide/native-mode.html#reflection

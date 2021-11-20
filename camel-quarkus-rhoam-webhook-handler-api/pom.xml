@@ -12,10 +12,12 @@
     <maven.compiler.target>11</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <quarkus-plugin.version>1.11.6.Final-redhat-00001</quarkus-plugin.version>
-    <quarkus.platform.artifact-id>quarkus-universe-bom</quarkus.platform.artifact-id>
-    <quarkus.platform.group-id>com.redhat.quarkus</quarkus.platform.group-id>
-    <quarkus.platform.version>1.11.6.Final-redhat-00001</quarkus.platform.version>
+    <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+    <quarkus.platform.group-id>com.redhat.quarkus.platform</quarkus.platform.group-id>
+    <quarkus.platform.version>2.2.3.Final-redhat-00013</quarkus.platform.version>
+    <quarkus.camel.bom.artifact-id>io.quarkus.platform</quarkus.camel.bom.artifact-id>
+    <quarkus.camel.bom.group-id>quarkus-camel-bom</quarkus.camel.bom.group-id>
+    <quarkus.camel.bom.version>2.2.3.Final</quarkus.camel.bom.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
   </properties>
   <dependencyManagement>
@@ -24,6 +26,13 @@
         <groupId>${quarkus.platform.group-id}</groupId>
         <artifactId>${quarkus.platform.artifact-id}</artifactId>
         <version>${quarkus.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>${quarkus.camel.bom.artifact-id}</groupId>
+        <artifactId>${quarkus.camel.bom.group-id}</artifactId>
+        <version>${quarkus.camel.bom.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -67,6 +76,10 @@
     <dependency>
       <groupId>org.apache.camel.quarkus</groupId>
       <artifactId>camel-quarkus-microprofile-metrics</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-opentracing</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.camel.quarkus</groupId>
@@ -130,7 +143,7 @@
       <plugin>
         <groupId>io.quarkus</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
-        <version>${quarkus-plugin.version}</version>
+        <version>${quarkus.platform.version}</version>
         <executions>
           <execution>
             <goals>
