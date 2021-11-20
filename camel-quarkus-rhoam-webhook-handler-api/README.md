@@ -62,11 +62,50 @@ You may customize the [**AMQP broker connection parameters**](https://github.com
     ```zsh
     oc login ...
     ```
+
 2. Create an OpenShift project or use your existing OpenShift project. For instance, to create `camel-quarkus`
     ```zsh
     oc new-project camel-quarkus-jvm --display-name="Apache Camel Quarkus Apps - JVM Mode"
     ```
-3. Create the `quarkus-amqpbroker-connection-secret` containing the _QUARKUS QPID JMS_ [configuration options](https://github.com/amqphub/quarkus-qpid-jms#configuration). These options are leveraged by the _Camel Quarkus AMQP_ extension to connect to an AMQP broker. 
+        
+3. Create an `allInOne` Jaeger instance.
+    1. **IF NOT ALREADY INSTALLED**:
+        1. Install, via OLM, the `Red Hat OpenShift distributed tracing platform` (Jaeger) operator with an `AllNamespaces` scope. :warning: Needs `cluster-admin` privileges
+            ```zsh
+            oc create --save-config -f - <<EOF
+            apiVersion: operators.coreos.com/v1alpha1
+            kind: Subscription
+            metadata:
+                name: jaeger-product
+                namespace: openshift-operators
+            spec:
+                channel: stable
+                installPlanApproval: Automatic
+                name: jaeger-product
+                source: redhat-operators
+                sourceNamespace: openshift-marketplace
+            EOF
+            ```
+        2. Verify the successful installation of the `Red Hat OpenShift distributed tracing platform` operator
+            ```zsh
+            watch oc get sub,csv
+            ```
+    2. Create the `allInOne` Jaeger instance.
+        ```zsh
+        oc create --save-config -f - <<EOF
+        apiVersion: jaegertracing.io/v1
+        kind: Jaeger
+        metadata:
+        name: jaeger-all-in-one-inmemory
+        spec:
+        allInOne:
+            options:
+            log-level: info
+        strategy: allInOne
+        EOF
+        ```
+
+4. Create the `quarkus-amqpbroker-connection-secret` containing the _QUARKUS QPID JMS_ [configuration options](https://github.com/amqphub/quarkus-qpid-jms#configuration). These options are leveraged by the _Camel Quarkus AMQP_ extension to connect to an AMQP broker. 
 
     :warning: _Replace values with your AMQP broker environment_
     ```zsh
@@ -74,9 +113,17 @@ You may customize the [**AMQP broker connection parameters**](https://github.com
     --from-literal=quarkus.qpid-jms.url="amqps://<AMQP_HOST_CHANGE_ME>:<AMQP_PORT_CHANGE_ME>?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000" \
     --from-literal=quarkus.qpid-jms.username=<CHANGE_ME> \
     --from-literal=quarkus.qpid-jms.password=<CHANGE_ME>
-    ``` 
+    ```
 
-4. Use either the _**S2I binary workflow**_ or _**S2I source workflow**_ to deploy the `camel-quarkus-rhoam-webhook-handler-api` app as described below.
+5. Create the `quarkus-opentracing-endpoint-secret` containing the _QUARKUS OPENTRACING_ [endpoint configuration options](https://quarkus.io/version/main/guides/opentracing#configuration-reference). These options are leveraged by the _Camel Quarkus Opentracing_ extension to connect to the jaeger collector. Adapt the `quarkus.jaeger.endpoint`according to your environment.
+
+    :warning: _Replace values with your AMQP broker environment_
+    ```zsh
+    oc create secret generic quarkus-opentracing-endpoint-secret \
+    --from-literal=quarkus.jaeger.endpoint="http://jaeger-all-in-one-inmemory-collector.camel-quarkus-jvm.svc:14268/api/traces"
+    ```
+
+6. Use either the _**S2I binary workflow**_ or _**S2I source workflow**_ to deploy the `camel-quarkus-rhoam-webhook-handler-api` app as described below.
 
 ### OpenShift S2I binary workflow 
 
@@ -94,12 +141,12 @@ oc import-image --confirm openjdk-11-ubi8 \
 ```zsh
 [...]
 INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Selecting target 'openshift' since it has the highest priority among the implicitly enabled deployment targets
-[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeploy] Kubernetes API Server at 'https://api.jeannyil.sandbox500.opentlc.com:6443/' successfully contacted.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeploy] Kubernetes API Server at 'https://api.jeannyil.sandbox1789.opentlc.com:6443/' successfully contacted.
 [INFO] [io.quarkus.arc.processor.BeanProcessor] Found unrecommended usage of private members (use package-private instead) in application beans:
         - @Inject field io.github.jeannyil.quarkus.camel.routes.RhoamWebhookEventsHandlerApiRoute#camelctx
 [INFO] [io.quarkus.deployment.pkg.steps.JarResultBuildStep] Building thin jar: /Users/jeannyil/Workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar
 [...]
-[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Performing openshift binary build with jar on server: https://api.jeannyil.sandbox500.opentlc.com:6443/ in namespace:camel-quarkus-jvm.
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Performing openshift binary build with jar on server: https://api.jeannyil.sandbox1789.opentlc.com:6443/ in namespace:camel-quarkus-jvm.
 [...]
 [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Pushing image image-registry.openshift-image-registry.svc:5000/camel-quarkus-jvm/camel-quarkus-rhoam-webhook-handler-api:1.0.0 ...
 [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Getting image source signatures
@@ -112,7 +159,7 @@ INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Selecting target 'op
 [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Storing signatures
 [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Successfully pushed image-registry.openshift-image-registry.svc:5000/camel-quarkus-jvm/camel-quarkus-rhoam-webhook-handler-api@sha256:d6785370303641ac73c34871769cf30bb255fb121593774d7555e38b45142e7a
 [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Push successful
-[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Deploying to openshift server: https://api.jeannyil.sandbox500.opentlc.com:6443/ in namespace: camel-quarkus-jvm.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Deploying to openshift server: https://api.jeannyil.sandbox1789.opentlc.com:6443/ in namespace: camel-quarkus-jvm.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: ServiceAccount camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Service camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Role view-secrets.
@@ -123,7 +170,7 @@ INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Selecting target 'op
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: BuildConfig camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: DeploymentConfig camel-quarkus-rhoam-webhook-handler-api.
 [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Route camel-quarkus-rhoam-webhook-handler-api.
-[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] The deployed application can be accessed at: http://camel-quarkus-rhoam-webhook-handler-api-camel-quarkus-jvm.apps.jeannyil.sandbox500.opentlc.com
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] The deployed application can be accessed at: http://camel-quarkus-rhoam-webhook-handler-api-camel-quarkus-jvm.apps.jeannyil.sandbox1789.opentlc.com
 [INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 131045ms
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
@@ -141,6 +188,7 @@ INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Selecting target 'op
     --from=registry.access.redhat.com/ubi8/openjdk-11 \
     -n openshift
     ```
+
 2. Create the `view-secrets` role and bind it, along with the `view` cluster role, to the `default` service account used to run the quarkus application. These permissions allow the `default` service account to access secrets.
 ```zsh
 oc create -f <(echo '
@@ -207,6 +255,7 @@ subjects:
     --labels=app.kubernetes.io/version=1.0.0 \
     --labels=app.openshift.io/runtime=quarkus
     ```
+
 4. Follow the log of the S2I build
     ```zsh
     oc logs bc/camel-quarkus-rhoam-webhook-handler-api -f
@@ -220,7 +269,8 @@ subjects:
     Successfully pushed image-registry.openshift-image-registry.svc:5000/camel-quarkus-jvm/camel-quarkus-rhoam-webhook-handler-api@sha256:509d233a0396f38fa00dd793abe52dd18c164eb3eda742696c269cff5d14e4d3
     Push successful
     ```
-4. Create a non-secure route to expose the `camel-quarkus-rhoam-webhook-handler-api` service outside the OpenShift cluster
+
+5. Create a non-secure route to expose the `camel-quarkus-rhoam-webhook-handler-api` service outside the OpenShift cluster
     ```zsh
     oc expose svc/camel-quarkus-rhoam-webhook-handler-api
     ```
@@ -238,6 +288,7 @@ subjects:
     ```zsh
     URL="http://$(oc get route camel-quarkus-rhoam-webhook-handler-api -o jsonpath='{.spec.host}')"
     ```
+    
 2. Test the `/webhook/amqpbridge` endpoint
 
     - `GET /webhook/amqpbridge` :
@@ -393,11 +444,12 @@ subjects:
         "servers": [
             {
                 "description": "API Backend URL",
-                "url": "http://rhoam-webhook-events-handler-api.apps.jeannyil.sandbox500.opentlc.com"
+                "url": "http://rhoam-webhook-events-handler-api.apps.jeannyil.sandbox1789.opentlc.com"
             }
         ]
     }
     ```
+
 4. Test the `/q/health` endpoint
     ```zsh
     http -v $URL/q/health
@@ -431,6 +483,7 @@ subjects:
         "status": "UP"
     }
     ```
+
 5. Test the `/q/health/live` endpoint
     ```zsh
     http -v $URL/q/health/live
@@ -452,6 +505,7 @@ subjects:
         "status": "UP"
     }
     ```
+
 6. Test the `/q/health/ready` endpoint
     ```zsh
     http -v $URL/q/health/ready
@@ -481,6 +535,7 @@ subjects:
         "status": "UP"
     }
     ```
+
 7. Test the `/q/metrics` endpoint
     ```zsh
     http -v $URL/q/metrics
@@ -560,8 +615,45 @@ If you want to learn more about building native executables, please consult http
     ```zsh
     oc new-project camel-quarkus-native --display-name="Apache Camel Quarkus Apps - Native Mode"
     ```
+        
+3. Create an `allInOne` Jaeger instance.
+    1. **IF NOT ALREADY INSTALLED**:
+        1. Install, via OLM, the `Red Hat OpenShift distributed tracing platform` (Jaeger) operator with an `AllNamespaces` scope. :warning: Needs `cluster-admin` privileges
+            ```zsh
+            oc create --save-config -f - <<EOF
+            apiVersion: operators.coreos.com/v1alpha1
+            kind: Subscription
+            metadata:
+                name: jaeger-product
+                namespace: openshift-operators
+            spec:
+                channel: stable
+                installPlanApproval: Automatic
+                name: jaeger-product
+                source: redhat-operators
+                sourceNamespace: openshift-marketplace
+            EOF
+            ```
+        2. Verify the successful installation of the `Red Hat OpenShift distributed tracing platform` operator
+            ```zsh
+            watch oc get sub,csv
+            ```
+    2. Create the `allInOne` Jaeger instance.
+        ```zsh
+        oc create --save-config -f - <<EOF
+        apiVersion: jaegertracing.io/v1
+        kind: Jaeger
+        metadata:
+        name: jaeger-all-in-one-inmemory
+        spec:
+        allInOne:
+            options:
+            log-level: info
+        strategy: allInOne
+        EOF
+        ```
 
-3. Create the `quarkus-amqpbroker-connection-secret` containing the _QUARKUS QPID JMS_ [configuration options](https://github.com/amqphub/quarkus-qpid-jms#configuration). These options are leveraged by the _Camel Quarkus AMQP_ extension to connect to an AMQP broker. 
+4. Create the `quarkus-amqpbroker-connection-secret` containing the _QUARKUS QPID JMS_ [configuration options](https://github.com/amqphub/quarkus-qpid-jms#configuration). These options are leveraged by the _Camel Quarkus AMQP_ extension to connect to an AMQP broker. 
 
     :warning: _Replace values with your AMQP broker environment_
     ```zsh
@@ -569,9 +661,17 @@ If you want to learn more about building native executables, please consult http
     --from-literal=quarkus.qpid-jms.url="amqps://<AMQP_HOST_CHANGE_ME>:<AMQP_PORT_CHANGE_ME>?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000" \
     --from-literal=quarkus.qpid-jms.username=<CHANGE_ME> \
     --from-literal=quarkus.qpid-jms.password=<CHANGE_ME>
+    ```
+
+5. Create the `quarkus-opentracing-endpoint-secret` containing the _QUARKUS OPENTRACING_ [endpoint configuration options](https://quarkus.io/version/main/guides/opentracing#configuration-reference). These options are leveraged by the _Camel Quarkus Opentracing_ extension to connect to the jaeger collector. Adapt the `quarkus.jaeger.endpoint`according to your environment.
+
+    :warning: _Replace values with your AMQP broker environment_
+    ```zsh
+    oc create secret generic quarkus-opentracing-endpoint-secret \
+    --from-literal=quarkus.jaeger.endpoint="http://jaeger-all-in-one-inmemory-collector.camel-quarkus-native.svc:14268/api/traces"
     ``` 
 
-4. Build a Linux executable using a container build. Compiling a Quarkus application to a native executable consumes a lot of memory during analysis and optimization. You can limit the amount of memory used during native compilation by setting the `quarkus.native.native-image-xmx` configuration property. Setting low memory limits might increase the build time.
+6. Build a Linux executable using a container build. Compiling a Quarkus application to a native executable consumes a lot of memory during analysis and optimization. You can limit the amount of memory used during native compilation by setting the `quarkus.native.native-image-xmx` configuration property. Setting low memory limits might increase the build time.
     1. For Docker use:
         ```zsh
         ./mvnw package -Pnative -Dquarkus.native.container-build=true \
@@ -599,7 +699,7 @@ If you want to learn more about building native executables, please consult http
     [INFO] ------------------------------------------------------------------------
     ```
 
-5. Create the `camel-quarkus-rhoam-webhook-handler-api` container image using the _OpenShift Docker build_ strategy. This strategy creates a container using a build configuration in the cluster.
+7. Create the `camel-quarkus-rhoam-webhook-handler-api` container image using the _OpenShift Docker build_ strategy. This strategy creates a container using a build configuration in the cluster.
     1. Create a build config based on the [`src/main/docker/Dockerfile.native`](./src/main/docker/Dockerfile.native) file:
         ```zsh
         cat src/main/docker/Dockerfile.native | oc new-build \
@@ -624,70 +724,70 @@ If you want to learn more about building native executables, please consult http
         Push successful
         ```
 
-6. Create the `view-secrets` role and bind it, along with the `view` cluster role, to the `default` service account used to run the quarkus application. These permissions allow the `default` service account to access secrets.
-```zsh
-oc create -f <(echo '
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  labels:
-    app.kubernetes.io/name: camel-quarkus-rhoam-webhook-handler-api
-    app.kubernetes.io/version: 1.0.0
-    app.openshift.io/runtime: quarkus
-  name: view-secrets
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - watch
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  labels:
-    app.kubernetes.io/name: camel-quarkus-rhoam-webhook-handler-api
-    app.kubernetes.io/version: 1.0.0
-    app.openshift.io/runtime: quarkus
-  name: default:view
-roleRef:
-  kind: ClusterRole
-  apiGroup: rbac.authorization.k8s.io
-  name: view
-subjects:
-- kind: ServiceAccount
-  name: default
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  labels:
-    app.kubernetes.io/name: camel-quarkus-rhoam-webhook-handler-api
-    app.kubernetes.io/version: 1.0.0
-    app.openshift.io/runtime: quarkus
-  name: default:view-secrets
-roleRef:
-  kind: Role
-  apiGroup: rbac.authorization.k8s.io
-  name: view-secrets
-subjects:
-- kind: ServiceAccount
-  name: default
-');
-```
+8. Create the `view-secrets` role and bind it, along with the `view` cluster role, to the `default` service account used to run the quarkus application. These permissions allow the `default` service account to access secrets.
+    ```zsh
+    oc create -f <(echo '
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+    labels:
+        app.kubernetes.io/name: camel-quarkus-rhoam-webhook-handler-api
+        app.kubernetes.io/version: 1.0.0
+        app.openshift.io/runtime: quarkus
+    name: view-secrets
+    rules:
+    - apiGroups:
+    - ""
+    resources:
+    - secrets
+    verbs:
+    - get
+    - list
+    - watch
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+    labels:
+        app.kubernetes.io/name: camel-quarkus-rhoam-webhook-handler-api
+        app.kubernetes.io/version: 1.0.0
+        app.openshift.io/runtime: quarkus
+    name: default:view
+    roleRef:
+    kind: ClusterRole
+    apiGroup: rbac.authorization.k8s.io
+    name: view
+    subjects:
+    - kind: ServiceAccount
+    name: default
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+    labels:
+        app.kubernetes.io/name: camel-quarkus-rhoam-webhook-handler-api
+        app.kubernetes.io/version: 1.0.0
+        app.openshift.io/runtime: quarkus
+    name: default:view-secrets
+    roleRef:
+    kind: Role
+    apiGroup: rbac.authorization.k8s.io
+    name: view-secrets
+    subjects:
+    - kind: ServiceAccount
+    name: default
+    ');
+    ```
 
-7. Deploy the `camel-quarkus-rhoam-webhook-handler-api` as a serverless application.
+9. Deploy the `camel-quarkus-rhoam-webhook-handler-api` as a serverless application.
     ```zsh
     kn service create camel-quarkus-rhoam-webhook-handler-api \
     --label app.openshift.io/runtime=quarkus \
     --image image-registry.openshift-image-registry.svc:5000/camel-quarkus-native/camel-quarkus-rhoam-webhook-handler-api:latest
     ```
 
-8. To verify that the `camel-quarkus-rhoam-webhook-handler-api` service is ready, enter the following command.
+10. To verify that the `camel-quarkus-rhoam-webhook-handler-api` service is ready, enter the following command.
     ```zsh
     kn service list camel-quarkus-rhoam-webhook-handler-api
     ```
