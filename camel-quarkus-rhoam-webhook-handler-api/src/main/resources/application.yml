@@ -42,7 +42,7 @@ quarkus:
     # OpenTracing configuration. This is leveraged by Camel Quarkus OpenTracing extension
     jaeger:
         # The service name
-        service-name: camel-quarkus-rhoam-webhook-handler-api
+        service-name: ${camel.context.name}
         # The sampler type (const, probabilistic, ratelimiting or remote)
         sampler-type: const
         # The sampler parameter
