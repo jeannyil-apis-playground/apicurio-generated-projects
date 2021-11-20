@@ -22,6 +22,14 @@ quarkus:
         replicas: 2
         route:
             expose: true
+        # CPU and Memory resources requirements when deployed on Kubernetes/OpenShift
+        resources:
+            requests:
+                cpu: 30m
+                memory: 256Mi
+            limits:
+                cpu: 500m
+                memory: 256Mi
         # liveness-probe:
         #     http-action-path: /q/health/live
         #     initial-delay: 0
