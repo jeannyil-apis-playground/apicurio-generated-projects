@@ -27,13 +27,15 @@ type: Opaque
 - JDK 11 installed with `JAVA_HOME` configured appropriately
 - Apache Maven 3.8.1+
 - An [**AMQP 1.0 protocol**](https://www.amqp.org/) compliant broker should already be installed and running. [**Red Hat AMQ 7.8 broker on OpenShift**](https://access.redhat.com/documentation/en-us/red_hat_amq/2020.q4/html/deploying_amq_broker_on_openshift/index) with an SSL-enabled AMQP acceptor has been used for testing.
-- **OPTIONAL**: [**Jaeger**](https://www.jaegertracing.io/), a distributed tracing system for observability ([_open tracing_](https://opentracing.io/)). :warning: **TODO**:
-    ```
-    podman run --rm -e COLLECTOR_ZIPKIN_HTTP_PORT=9411 \
-    -p 5775:5775/udp -p 6831:6831/udp -p 6832:6832/udp \
-    -p 5778:5778 -p 16686:16686 -p 14268:14268 -p 9411:9411 \
-    quay.io/jaegertracing/all-in-one:latest
-    ```
+- **OPTIONAL**: [**Jaeger**](https://www.jaegertracing.io/), a distributed tracing system for observability ([_open tracing_](https://opentracing.io/)). :bulb: A simple way of starting a Jaeger tracing server is with `docker` or `podman`:
+    1. Start the Jaeger tracing server:
+        ```
+        podman run --rm -e COLLECTOR_ZIPKIN_HTTP_PORT=9411 \
+        -p 5775:5775/udp -p 6831:6831/udp -p 6832:6832/udp \
+        -p 5778:5778 -p 16686:16686 -p 14268:14268 -p 9411:9411 \
+        quay.io/jaegertracing/all-in-one:latest
+        ```
+    2. While the server is running, browse to http://localhost:16686 to view tracing events.
 
 ## Running the application in dev mode
 
