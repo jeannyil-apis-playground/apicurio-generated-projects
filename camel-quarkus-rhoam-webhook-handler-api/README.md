@@ -27,7 +27,13 @@ type: Opaque
 - JDK 11 installed with `JAVA_HOME` configured appropriately
 - Apache Maven 3.8.1+
 - An [**AMQP 1.0 protocol**](https://www.amqp.org/) compliant broker should already be installed and running. [**Red Hat AMQ 7.8 broker on OpenShift**](https://access.redhat.com/documentation/en-us/red_hat_amq/2020.q4/html/deploying_amq_broker_on_openshift/index) with an SSL-enabled AMQP acceptor has been used for testing.
-- **OPTIONAL**: [**Jaeger**](https://www.jaegertracing.io/), a distributed tracing system for observability ([_open tracing_](https://opentracing.io/))
+- **OPTIONAL**: [**Jaeger**](https://www.jaegertracing.io/), a distributed tracing system for observability ([_open tracing_](https://opentracing.io/)). :warning: **TODO**:
+    ```
+    podman run --rm -e COLLECTOR_ZIPKIN_HTTP_PORT=9411 \
+    -p 5775:5775/udp -p 6831:6831/udp -p 6832:6832/udp \
+    -p 5778:5778 -p 16686:16686 -p 14268:14268 -p 9411:9411 \
+    quay.io/jaegertracing/all-in-one:latest
+    ```
 
 ## Running the application in dev mode
 
@@ -37,10 +43,6 @@ You can run your application in dev mode that enables live coding using:
 ```
 
 ## Packaging and running the application locally
-
-The application can be packaged using `./mvnw package`.
-It produces the `camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar` file in the `/target` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/lib` directory.
 
 The application can be packaged using:
 ```zsh
