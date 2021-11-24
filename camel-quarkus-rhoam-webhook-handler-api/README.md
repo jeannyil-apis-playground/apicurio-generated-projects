@@ -826,46 +826,46 @@ If you want to learn more about building native executables, please consult http
 - OpenShift Container Platform 4.8.19 running on AWS
 - Compute nodes types: [m5.xlarge](https://aws.amazon.com/ec2/instance-types/m5/) (4 vCPU / 16 GiB Memory)
 
-### JVM mode
+### JVM mode - 8.885s
 
 ```zsh
-2021-11-20 15:09:38,259 INFO  [org.apa.cam.qua.cor.CamelBootstrapRecorder] (main) Bootstrap runtime: org.apache.camel.quarkus.main.CamelMainRuntime
-2021-11-20 15:09:38,370 INFO  [org.apa.cam.mai.BaseMainSupport] (main) Auto-configuration summary
-2021-11-20 15:09:38,371 INFO  [org.apa.cam.mai.BaseMainSupport] (main)     camel.context.name=camel-quarkus-rhoam-webhook-handler-api
-2021-11-20 15:09:39,268 INFO  [org.apa.cam.lan.xpa.XPathBuilder] (main) Created default XPathFactory org.apache.xpath.jaxp.XPathFactoryImpl@38fb50f8
-2021-11-20 15:09:39,570 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) StreamCaching is enabled on CamelContext: camel-quarkus-rhoam-webhook-handler-api
-2021-11-20 15:09:39,668 INFO  [org.apa.cam.imp.eng.DefaultStreamCachingStrategy] (main) StreamCaching in use with spool directory: /tmp/camel/camel-tmp-5F33B778E2D667B-0000000000000000 and rules: [Spool > 128K body size]
-2021-11-20 15:09:39,760 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Routes startup summary (total:6 started:6)
-2021-11-20 15:09:39,761 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started generate-error-response-route (direct://generateErrorResponse)
-2021-11-20 15:09:39,761 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started ping-webhook-route (direct://pingWebhook)
-2021-11-20 15:09:39,761 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started send-to-amqp-queue-route (direct://sendToAMQPQueue)
-2021-11-20 15:09:39,761 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started get-openapi-spec-route (rest://get:/openapi.json)
-2021-11-20 15:09:39,761 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started webhook-amqpbridge-ping-route (rest://get:/webhook/amqpbridge)
-2021-11-20 15:09:39,761 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started webhook-amqpbridge-handler-route (rest://post:/webhook/amqpbridge)
-2021-11-20 15:09:39,761 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Apache Camel 3.11.1 (camel-quarkus-rhoam-webhook-handler-api) started in 1s105ms (build:0ms init:914ms start:191ms)
-2021-11-20 15:09:40,161 INFO  [io.quarkus] (main) camel-quarkus-rhoam-webhook-handler-api 1.0.0 on JVM (powered by Quarkus 2.2.3.Final-redhat-00013) started in 9.205s. Listening on: http://0.0.0.0:8080
-2021-11-20 15:09:40,162 INFO  [io.quarkus] (main) Profile prod activated.
-2021-11-20 15:09:40,162 INFO  [io.quarkus] (main) Installed features: [camel-amqp, camel-attachments, camel-bean, camel-core, camel-direct, camel-jackson, camel-jms, camel-microprofile-health, camel-microprofile-metrics, camel-openapi-java, camel-opentracing, camel-platform-http, camel-rest, camel-xml-jaxb, camel-xpath, cdi, config-yaml, jaeger, kubernetes, kubernetes-client, qpid-jms, smallrye-context-propagation, smallrye-health, smallrye-metrics, smallrye-opentracing, vertx, vertx-web]
+2021-11-24 13:26:44,452 INFO  [org.apa.cam.qua.cor.CamelBootstrapRecorder] (main) Bootstrap runtime: org.apache.camel.quarkus.main.CamelMainRuntime
+2021-11-24 13:26:44,655 INFO  [org.apa.cam.mai.BaseMainSupport] (main) Auto-configuration summary
+2021-11-24 13:26:44,656 INFO  [org.apa.cam.mai.BaseMainSupport] (main)     camel.context.name=camel-quarkus-rhoam-webhook-handler-api
+2021-11-24 13:26:45,538 INFO  [org.apa.cam.lan.xpa.XPathBuilder] (main) Created default XPathFactory org.apache.xpath.jaxp.XPathFactoryImpl@261b9a37
+2021-11-24 13:26:45,751 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) StreamCaching is enabled on CamelContext: camel-quarkus-rhoam-webhook-handler-api
+2021-11-24 13:26:45,839 INFO  [org.apa.cam.imp.eng.DefaultStreamCachingStrategy] (main) StreamCaching in use with spool directory: /tmp/camel/camel-tmp-B4A530A6317EE0F-0000000000000000 and rules: [Spool > 128K body size]
+2021-11-24 13:26:45,850 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Routes startup summary (total:6 started:6)
+2021-11-24 13:26:45,850 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started generate-error-response-route (direct://generateErrorResponse)
+2021-11-24 13:26:45,850 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started send-to-amqp-queue-route (direct://sendToAMQPQueue)
+2021-11-24 13:26:45,850 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started ping-webhook-route (direct://pingWebhook)
+2021-11-24 13:26:45,850 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started get-openapi-spec-route (rest://get:/openapi.json)
+2021-11-24 13:26:45,850 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started webhook-amqpbridge-ping-route (rest://get:/webhook/amqpbridge)
+2021-11-24 13:26:45,850 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started webhook-amqpbridge-handler-route (rest://post:/webhook/amqpbridge)
+2021-11-24 13:26:45,851 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Apache Camel 3.11.1 (camel-quarkus-rhoam-webhook-handler-api) started in 810ms (build:0ms init:711ms start:99ms)
+2021-11-24 13:26:46,244 INFO  [io.quarkus] (main) camel-quarkus-rhoam-webhook-handler-api 1.0.0 on JVM (powered by Quarkus 2.2.3.Final-redhat-00013) started in 8.885s. Listening on: http://0.0.0.0:8080
+2021-11-24 13:26:46,245 INFO  [io.quarkus] (main) Profile prod activated.
+2021-11-24 13:26:46,245 INFO  [io.quarkus] (main) Installed features: [camel-amqp, camel-attachments, camel-bean, camel-core, camel-direct, camel-jackson, camel-jms, camel-microprofile-health, camel-microprofile-metrics, camel-openapi-java, camel-opentracing, camel-platform-http, camel-rest, camel-xml-jaxb, camel-xpath, cdi, config-yaml, jaeger, kubernetes, kubernetes-client, qpid-jms, smallrye-context-propagation, smallrye-health, smallrye-metrics, smallrye-opentracing, vertx, vertx-web]
 ```
 
-### Native mode
+### Native mode - 0.104s
 
 ```zsh
-2021-11-24 11:35:23,542 INFO  [org.apa.cam.qua.cor.CamelBootstrapRecorder] (main) Bootstrap runtime: org.apache.camel.quarkus.main.CamelMainRuntime
-2021-11-24 11:35:23,545 INFO  [org.apa.cam.mai.BaseMainSupport] (main) Auto-configuration summary
-2021-11-24 11:35:23,545 INFO  [org.apa.cam.mai.BaseMainSupport] (main)     camel.context.name=camel-quarkus-rhoam-webhook-handler-api
-2021-11-24 11:35:23,549 INFO  [org.apa.cam.lan.xpa.XPathBuilder] (main) Created default XPathFactory com.sun.org.apache.xpath.internal.jaxp.XPathFactoryImpl@4b459962
-2021-11-24 11:35:23,553 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) StreamCaching is enabled on CamelContext: camel-quarkus-rhoam-webhook-handler-api
-2021-11-24 11:35:23,554 INFO  [org.apa.cam.imp.eng.DefaultStreamCachingStrategy] (main) StreamCaching in use with spool directory: /tmp/camel/camel-tmp-9D37AC3F937B9DE-0000000000000000 and rules: [Spool > 128K body size]
-2021-11-24 11:35:23,555 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Routes startup summary (total:6 started:6)
-2021-11-24 11:35:23,555 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started ping-webhook-route (direct://pingWebhook)
-2021-11-24 11:35:23,555 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started send-to-amqp-queue-route (direct://sendToAMQPQueue)
-2021-11-24 11:35:23,555 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started generate-error-response-route (direct://generateErrorResponse)
-2021-11-24 11:35:23,555 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started get-openapi-spec-route (rest://get:/openapi.json)
-2021-11-24 11:35:23,555 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started webhook-amqpbridge-ping-route (rest://get:/webhook/amqpbridge)
-2021-11-24 11:35:23,555 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started webhook-amqpbridge-handler-route (rest://post:/webhook/amqpbridge)
-2021-11-24 11:35:23,555 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Apache Camel 3.11.1 (camel-quarkus-rhoam-webhook-handler-api) started in 9ms (build:0ms init:6ms start:3ms)
-2021-11-24 11:35:23,556 INFO  [io.quarkus] (main) camel-quarkus-rhoam-webhook-handler-api 1.0.0 native (powered by Quarkus 2.2.3.Final-redhat-00013) started in 0.097s. Listening on: http://0.0.0.0:8080
-2021-11-24 11:35:23,556 INFO  [io.quarkus] (main) Profile prod activated.
-2021-11-24 11:35:23,556 INFO  [io.quarkus] (main) Installed features: [camel-amqp, camel-attachments, camel-bean, camel-core, camel-direct, camel-jackson, camel-jms, camel-microprofile-health, camel-microprofile-metrics, camel-openapi-java, camel-opentracing, camel-platform-http, camel-rest, camel-xml-jaxb, camel-xpath, cdi, config-yaml, jaeger, kubernetes, kubernetes-client, qpid-jms, smallrye-context-propagation, smallrye-health, smallrye-metrics, smallrye-opentracing, vertx, vertx-web]
+2021-11-24 13:28:40,517 INFO  [org.apa.cam.qua.cor.CamelBootstrapRecorder] (main) Bootstrap runtime: org.apache.camel.quarkus.main.CamelMainRuntime
+2021-11-24 13:28:40,520 INFO  [org.apa.cam.mai.BaseMainSupport] (main) Auto-configuration summary
+2021-11-24 13:28:40,520 INFO  [org.apa.cam.mai.BaseMainSupport] (main)     camel.context.name=camel-quarkus-rhoam-webhook-handler-api
+2021-11-24 13:28:40,525 INFO  [org.apa.cam.lan.xpa.XPathBuilder] (main) Created default XPathFactory com.sun.org.apache.xpath.internal.jaxp.XPathFactoryImpl@36a3e2cf
+2021-11-24 13:28:40,528 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) StreamCaching is enabled on CamelContext: camel-quarkus-rhoam-webhook-handler-api
+2021-11-24 13:28:40,530 INFO  [org.apa.cam.imp.eng.DefaultStreamCachingStrategy] (main) StreamCaching in use with spool directory: /tmp/camel/camel-tmp-043E4AA14FF070D-0000000000000000 and rules: [Spool > 128K body size]
+2021-11-24 13:28:40,531 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Routes startup summary (total:6 started:6)
+2021-11-24 13:28:40,531 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started ping-webhook-route (direct://pingWebhook)
+2021-11-24 13:28:40,531 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started send-to-amqp-queue-route (direct://sendToAMQPQueue)
+2021-11-24 13:28:40,531 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started generate-error-response-route (direct://generateErrorResponse)
+2021-11-24 13:28:40,531 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started get-openapi-spec-route (rest://get:/openapi.json)
+2021-11-24 13:28:40,531 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started webhook-amqpbridge-ping-route (rest://get:/webhook/amqpbridge)
+2021-11-24 13:28:40,531 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main)     Started webhook-amqpbridge-handler-route (rest://post:/webhook/amqpbridge)
+2021-11-24 13:28:40,531 INFO  [org.apa.cam.imp.eng.AbstractCamelContext] (main) Apache Camel 3.11.1 (camel-quarkus-rhoam-webhook-handler-api) started in 10ms (build:0ms init:7ms start:3ms)
+2021-11-24 13:28:40,533 INFO  [io.quarkus] (main) camel-quarkus-rhoam-webhook-handler-api 1.0.0 native (powered by Quarkus 2.2.3.Final-redhat-00013) started in 0.104s. Listening on: http://0.0.0.0:8080
+2021-11-24 13:28:40,533 INFO  [io.quarkus] (main) Profile prod activated.
+2021-11-24 13:28:40,533 INFO  [io.quarkus] (main) Installed features: [camel-amqp, camel-attachments, camel-bean, camel-core, camel-direct, camel-jackson, camel-jms, camel-microprofile-health, camel-microprofile-metrics, camel-openapi-java, camel-opentracing, camel-platform-http, camel-rest, camel-xml-jaxb, camel-xpath, cdi, config-yaml, jaeger, kubernetes, kubernetes-client, qpid-jms, smallrye-context-propagation, smallrye-health, smallrye-metrics, smallrye-opentracing, vertx, vertx-web]
 ```
