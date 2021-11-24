@@ -218,60 +218,46 @@ INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Selecting target 'op
     ```
 
 2. Create the `view-secrets` role and bind it, along with the `view` cluster role, to the `default` service account used to run the quarkus application. These permissions allow the `default` service account to access secrets.
-```zsh
-oc create -f <(echo '
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  labels:
-    app.kubernetes.io/name: camel-quarkus-rhoam-webhook-handler-api
-    app.kubernetes.io/version: 1.0.0
-    app.openshift.io/runtime: quarkus
-  name: view-secrets
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - watch
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  labels:
-    app.kubernetes.io/name: camel-quarkus-rhoam-webhook-handler-api
-    app.kubernetes.io/version: 1.0.0
-    app.openshift.io/runtime: quarkus
-  name: default:view
-roleRef:
-  kind: ClusterRole
-  apiGroup: rbac.authorization.k8s.io
-  name: view
-subjects:
-- kind: ServiceAccount
-  name: default
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  labels:
-    app.kubernetes.io/name: camel-quarkus-rhoam-webhook-handler-api
-    app.kubernetes.io/version: 1.0.0
-    app.openshift.io/runtime: quarkus
-  name: default:view-secrets
-roleRef:
-  kind: Role
-  apiGroup: rbac.authorization.k8s.io
-  name: view-secrets
-subjects:
-- kind: ServiceAccount
-  name: default
-');
-```
+    ```zsh
+    oc create -f <(echo '
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: view-secrets
+    rules:
+      - apiGroups:
+          - ""
+        resources:
+          - secrets
+        verbs:
+          - get
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: default:view
+    roleRef:
+      kind: ClusterRole
+      apiGroup: rbac.authorization.k8s.io
+      name: view
+    subjects:
+      - kind: ServiceAccount
+        name: default
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: default:view-secrets
+    roleRef:
+      kind: Role
+      apiGroup: rbac.authorization.k8s.io
+      name: view-secrets
+    subjects:
+      - kind: ServiceAccount
+        name: default
+    ')
+    ```
 
 3. Create the `camel-quarkus-rhoam-webhook-handler-api` OpenShift application from the git repository
     ```zsh
@@ -279,8 +265,6 @@ subjects:
     --context-dir=camel-quarkus-rhoam-webhook-handler-api \
     --name=camel-quarkus-rhoam-webhook-handler-api \
     --image-stream="openshift/openjdk-11-ubi8" \
-    --labels=app.kubernetes.io/name=camel-quarkus-rhoam-webhook-handler-api \
-    --labels=app.kubernetes.io/version=1.0.0 \
     --labels=app.openshift.io/runtime=quarkus
     ```
 
@@ -290,11 +274,11 @@ subjects:
     ```
     ```zsh
     Cloning "https://github.com/jeannyil-apis-playground/apicurio-generated-projects.git" ...
-        Commit:	aaf528ba112cb014f57fc25041eb4f6acfac8c2f (Upgraded to Red Hat build of Quarkus 1.11)
-        Author:	Jean Armand Nyilimbibi <jean.nyilimbibi@gmail.com>
-        Date:	Thu May 27 00:03:10 2021 +0200
+            Commit: bcb6e69e2f0285ef1e9dcdb4abb47ede80fb43e1 (Adapted S2I Configuration to RH build of Quarkus v2.2.3.Final-redhat-00013)
+            Author: jeanNyil <jean.nyilimbibi@gmail.com>
+            Date:   Wed Nov 24 13:32:03 2021 +0100
     [...]
-    Successfully pushed image-registry.openshift-image-registry.svc:5000/camel-quarkus-jvm/camel-quarkus-rhoam-webhook-handler-api@sha256:509d233a0396f38fa00dd793abe52dd18c164eb3eda742696c269cff5d14e4d3
+    Successfully pushed image-registry.openshift-image-registry.svc:5000/camel-quarkus-jvm/camel-quarkus-rhoam-webhook-handler-api@sha256:9932efcb67f775fcecef2055892c01ac337f64d7cc55f96197edda537536f424
     Push successful
     ```
 
