@@ -16,6 +16,7 @@ pipeline {
         string (defaultValue: 'amqps://amq-ssl-broker-amqp-0-svc.amq7-broker-cluster.svc:5672?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000', name:'AMQP_BROKER_URL', description:'AMQP Broker connection URL')
         string (defaultValue: 'amq-user', name:'AMQP_BROKER_USER', description:'AMQP Broker connection username')
         string (defaultValue: 'P@ssw0rd', name:'AMQP_BROKER_PWD', description:'AMQP Broker connection password')
+        string (defaultValue: 'http://jaeger-all-in-one-inmemory-collector.camel-quarkus-jvm.svc:14268/api/traces', name:'JAEGER_TRACING_ENDPOINT', description:'Jaeger server tracing endpoint')
         string (defaultValue: 'https://github.com/jeannyil-apis-playground/apicurio-generated-projects.git', name:'GIT_REPO', description:'Git source')
         string (defaultValue: 'main', name:'GIT_BRANCH', description:'Git branch in the source git')
         booleanParam (defaultValue: false, name:'SELECT_DEPLOY_TO_PROD', description:'Approval to deploy to Production (default: no deployment to production)')
@@ -178,6 +179,14 @@ def promoteServiceSetup(svcName, registry, imageNameSpace, tagName, projName) {
     }
 
     try {
+        sh """
+            oc delete secret quarkus-opentracing-endpoint-secret -n ${projName} 2> /dev/null
+        """
+    } catch (Exception e) {
+        echo "skip quarkus-opentracing-endpoint-secret cleanup related exception, the resource may not exist. " + e.getMessage();
+    }
+
+    try {
         echo "Creating the quarkus-amqpbroker-connection-secret in ${projName} namespace ..."
         sh """ 
             oc create secret generic quarkus-amqpbroker-connection-secret \
@@ -187,6 +196,16 @@ def promoteServiceSetup(svcName, registry, imageNameSpace, tagName, projName) {
         """
     } catch (Exception e) {
         echo "skip quarkus-amqpbroker-connection-secret creation related exception, the resource may already exist. " + e.getMessage();
+    }
+
+    try {
+        echo "Creating the quarkus-opentracing-endpoint-secret in ${projName} namespace ..."
+        sh """ 
+            oc create secret generic quarkus-opentracing-endpoint-secret \
+            --from-literal=quarkus.jaeger.endpoint="${JAEGER_TRACING_ENDPOINT}"
+        """
+    } catch (Exception e) {
+        echo "skip quarkus-opentracing-endpoint-secret creation related exception, the resource may already exist. " + e.getMessage();
     }
 
     try {
@@ -254,6 +273,14 @@ def deploy(folderName, projName) {
     } catch (Exception e) {
         echo "skip quarkus-amqpbroker-connection-secret cleanup related exception, the resource may not exist. " + e.getMessage();
     }
+    
+    try {
+        sh """
+            oc delete secret quarkus-opentracing-endpoint-secret -n ${projName} 2> /dev/null
+        """
+    } catch (Exception e) {
+        echo "skip quarkus-opentracing-endpoint-secret cleanup related exception, the resource may not exist. " + e.getMessage();
+    }
 
     try {
         echo "Creating the quarkus-amqpbroker-connection-secret in ${projName} namespace ..."
@@ -265,6 +292,16 @@ def deploy(folderName, projName) {
         """
     } catch (Exception e) {
         echo "skip quarkus-amqpbroker-connection-secret creation related exception, the resource may already exist. " + e.getMessage();
+    }
+
+    try {
+        echo "Creating the quarkus-opentracing-endpoint-secret in ${projName} namespace ..."
+        sh """ 
+            oc create secret generic quarkus-opentracing-endpoint-secret \
+            --from-literal=quarkus.jaeger.endpoint="${JAEGER_TRACING_ENDPOINT}"
+        """
+    } catch (Exception e) {
+        echo "skip quarkus-opentracing-endpoint-secret creation related exception, the resource may already exist. " + e.getMessage();
     }
 
     sh """
