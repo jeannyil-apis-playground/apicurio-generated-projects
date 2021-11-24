@@ -28,13 +28,13 @@ public class SendToAMQPQueueRoute extends RouteBuilder {
         /**
 		 * Catch unexpected exceptions
 		 */
-		// onException(Exception.class)
-        //     .handled(true)
-        //     .maximumRedeliveries(0)
-        //     .log(LoggingLevel.ERROR, logName, ">>> ${routeId} - Caught exception: ${exception.stacktrace}").id("log-sendToAMQPQueue-unexpected")
-        //     .to(DirectEndpointConstants.DIRECT_GENERATE_ERROR_MESSAGE).id("generate-sendToAMQPQueue-500-errorresponse")
-        //     .log(LoggingLevel.INFO, logName, ">>> ${routeId} - OUT: headers:[${headers}] - body:[${body}]").id("log-sendToAMQPQueue-unexpected-response")
-        // ;
+		onException(Exception.class)
+            .handled(true)
+            .maximumRedeliveries(0)
+            .log(LoggingLevel.ERROR, logName, ">>> ${routeId} - Caught exception: ${exception.stacktrace}").id("log-sendToAMQPQueue-unexpected")
+            .to(DirectEndpointConstants.DIRECT_GENERATE_ERROR_MESSAGE).id("generate-sendToAMQPQueue-500-errorresponse")
+            .log(LoggingLevel.INFO, logName, ">>> ${routeId} - OUT: headers:[${headers}] - body:[${body}]").id("log-sendToAMQPQueue-unexpected-response")
+        ;
 
         /**
 		 * Catch unexpected exceptions

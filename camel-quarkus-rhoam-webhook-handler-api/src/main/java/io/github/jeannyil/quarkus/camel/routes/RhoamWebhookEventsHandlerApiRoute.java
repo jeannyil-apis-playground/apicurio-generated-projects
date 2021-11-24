@@ -29,7 +29,7 @@ public class RhoamWebhookEventsHandlerApiRoute extends RouteBuilder {
 	private static String logName = RhoamWebhookEventsHandlerApiRoute.class.getName();
 
 	@Inject
-	private CamelContext camelctx;
+	CamelContext camelctx;
 	
 	@Override
 	public void configure() throws Exception {
@@ -42,13 +42,13 @@ public class RhoamWebhookEventsHandlerApiRoute extends RouteBuilder {
 		/**
 		 * Catch unexpected exceptions
 		 */
-		// onException(Exception.class)
-		// 	.handled(true)
-		// 	.maximumRedeliveries(0)
-		// 	.log(LoggingLevel.ERROR, logName, ">>> ${routeId} - Caught exception: ${exception.stacktrace}").id("log-api-unexpected")
-		// 	.to(DirectEndpointConstants.DIRECT_GENERATE_ERROR_MESSAGE).id("generate-api-500-errorresponse")
-		// 	.log(LoggingLevel.INFO, logName, ">>> ${routeId} - OUT: headers:[${headers}] - body:[${body}]").id("log-api-unexpected-response")
-		// ;
+		onException(Exception.class)
+			.handled(true)
+			.maximumRedeliveries(0)
+			.log(LoggingLevel.ERROR, logName, ">>> ${routeId} - Caught exception: ${exception.stacktrace}").id("log-api-unexpected")
+			.to(DirectEndpointConstants.DIRECT_GENERATE_ERROR_MESSAGE).id("generate-api-500-errorresponse")
+			.log(LoggingLevel.INFO, logName, ">>> ${routeId} - OUT: headers:[${headers}] - body:[${body}]").id("log-api-unexpected-response")
+		;
 		
 		/**
 		 * REST configuration with Camel Quarkus Platform HTTP component

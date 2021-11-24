@@ -23,13 +23,13 @@ public class WebhookPingRoute extends RouteBuilder {
 		/**
 		 * Catch unexpected exceptions
 		 */
-		// onException(Exception.class)
-        //     .handled(true)
-        //     .maximumRedeliveries(0)
-        //     .log(LoggingLevel.ERROR, logName, ">>> ${routeId} - Caught exception: ${exception.stacktrace}").id("log-pingWebhook-unexpected")
-        //     .to(DirectEndpointConstants.DIRECT_GENERATE_ERROR_MESSAGE).id("generate-pingWebhook-500-errorresponse")
-        //     .log(LoggingLevel.INFO, logName, ">>> ${routeId} - OUT: headers:[${headers}] - body:[${body}]").id("log-pingWebhook-unexpected-response")
-        // ;
+		onException(Exception.class)
+            .handled(true)
+            .maximumRedeliveries(0)
+            .log(LoggingLevel.ERROR, logName, ">>> ${routeId} - Caught exception: ${exception.stacktrace}").id("log-pingWebhook-unexpected")
+            .to(DirectEndpointConstants.DIRECT_GENERATE_ERROR_MESSAGE).id("generate-pingWebhook-500-errorresponse")
+            .log(LoggingLevel.INFO, logName, ">>> ${routeId} - OUT: headers:[${headers}] - body:[${body}]").id("log-pingWebhook-unexpected-response")
+        ;
         
         from(DirectEndpointConstants.DIRECT_PING_WEBHOOK)
 			.routeId("ping-webhook-route")

@@ -74,7 +74,7 @@ quarkus:
         # If all character sets should be added to the native image. This increases image size
         add-all-charsets: true
         # The docker image to use to do the image build
-        builder-image: quay.io/quarkus/ubi-quarkus-mandrel:20.3-java11
+        builder-image: ${platform.quarkus.native.builder-image}
         # A comma separated list of Ant-path style patterns to match resources
         # that should be <strong>included</strong> in the native executable. By default,
         # resources not selected by quarkus itself are ignored. Then, inclusion
