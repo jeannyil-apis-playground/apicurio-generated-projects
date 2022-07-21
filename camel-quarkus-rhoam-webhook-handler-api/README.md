@@ -16,10 +16,10 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: quarkus-amqpbroker-connection-secret
-data:
-  quarkus.qpid-jms.password: UEBzc3cwcmQ=
-  quarkus.qpid-jms.url: YW1xcHM6Ly9hbXEtc3NsLWJyb2tlci1hbXFwLTAtc3ZjLmFtcTctYnJva2VyLWNsdXN0ZXIuc3ZjOjU2NzI/dHJhbnNwb3J0LnRydXN0QWxsPXRydWUmdHJhbnNwb3J0LnZlcmlmeUhvc3Q9ZmFsc2UmYW1xcC5pZGxlVGltZW91dD0xMjAwMDA=
-  quarkus.qpid-jms.username: YW1xLXVzZXI=
+stringData:
+  quarkus.qpid-jms.password: "P@ssw0rd"
+  quarkus.qpid-jms.url: "amqps://amq-ssl-broker-amqp-0-svc.amq7-broker-cluster.svc:5672?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000"
+  quarkus.qpid-jms.username: "camel-quarkus-rhoam-webhook-handler-api"
 type: Opaque
 ```
 
@@ -102,7 +102,7 @@ java -Dquarkus.kubernetes-config.enabled=false -Dquarkus.qpid-jms.url="amqps://a
     1. **IF NOT ALREADY INSTALLED**:
         1. Install, via OLM, the `Red Hat OpenShift distributed tracing platform` (Jaeger) operator with an `AllNamespaces` scope. :warning: Needs `cluster-admin` privileges
             ```zsh
-            oc create --save-config -f - <<EOF
+            oc apply -f - <<EOF
             apiVersion: operators.coreos.com/v1alpha1
             kind: Subscription
             metadata:
@@ -122,7 +122,7 @@ java -Dquarkus.kubernetes-config.enabled=false -Dquarkus.qpid-jms.url="amqps://a
             ```
     2. Create the `allInOne` Jaeger instance.
         ```zsh
-        oc create --save-config -f - <<EOF
+        oc apply -f - <<EOF
         apiVersion: jaegertracing.io/v1
         kind: Jaeger
         metadata:
@@ -135,36 +135,12 @@ java -Dquarkus.kubernetes-config.enabled=false -Dquarkus.qpid-jms.url="amqps://a
         EOF
         ```
 
-4. Create the `quarkus-amqpbroker-connection-secret` containing the _QUARKUS QPID JMS_ [configuration options](https://github.com/amqphub/quarkus-qpid-jms#configuration). These options are leveraged by the _Camel Quarkus AMQP_ extension to connect to an AMQP broker. 
-
-    :warning: _Replace values with your AMQP broker environment_
-    ```zsh
-    oc create secret generic quarkus-amqpbroker-connection-secret \
-    --from-literal=quarkus.qpid-jms.url="amqps://<AMQP_HOST_CHANGE_ME>:<AMQP_PORT_CHANGE_ME>?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000" \
-    --from-literal=quarkus.qpid-jms.username=<CHANGE_ME> \
-    --from-literal=quarkus.qpid-jms.password=<CHANGE_ME>
-    ```
-
-5. Create the `quarkus-opentracing-endpoint-secret` containing the _QUARKUS OPENTRACING_ [endpoint configuration options](https://quarkus.io/version/main/guides/opentracing#configuration-reference). These options are leveraged by the _Camel Quarkus Opentracing_ extension to connect to the jaeger collector. Adapt the `quarkus.jaeger.endpoint`according to your environment.
-
-    :warning: _Replace values with your AMQP broker environment_
-    ```zsh
-    oc create secret generic quarkus-opentracing-endpoint-secret \
-    --from-literal=quarkus.jaeger.endpoint="http://jaeger-all-in-one-inmemory-collector.camel-quarkus-jvm.svc:14268/api/traces"
-    ```
-
-6. Use either the _**S2I binary workflow**_ or _**S2I source workflow**_ to deploy the `camel-quarkus-rhoam-webhook-handler-api` app as described below.
+4. Use either the _**S2I binary workflow**_ or _**S2I source workflow**_ to deploy the `camel-quarkus-rhoam-webhook-handler-api` app as described below.
 
 ### OpenShift S2I binary workflow 
 
 This leverages the **Quarkus OpenShift** extension and is only recommended for development and testing purposes.
 
-Make sure the latest supported OpenJDK 11 image is imported in OpenShift
-```zsh
-oc import-image --confirm openjdk-11-ubi8 \
---from=registry.access.redhat.com/ubi8/openjdk-11 \
--n openshift
-```
 ```zsh
 ./mvnw clean package -Dquarkus.kubernetes.deploy=true
 ```
@@ -175,6 +151,13 @@ INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Selecting target 'op
 [INFO] Checking for existing resources in: /Users/jnyilimb/workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/src/main/kubernetes.
 [...]
 [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Performing openshift binary build with jar on server: https://api.jeannyil.sandbox1789.opentlc.com:6443/ in namespace:camel-quarkus-jvm.
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Applied: ImageStream camel-quarkus-rhoam-webhook-handler-api
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Applied: ImageStream openjdk-11
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Applied: BuildConfig camel-quarkus-rhoam-webhook-handler-api
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Receiving source from STDIN as archive ...
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Caching blobs under "/var/cache/blobs".
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] 
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Pulling image registry.access.redhat.com/ubi8/ubi-minimal:8.4 ...
 [...]
 [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Pushing image image-registry.openshift-image-registry.svc:5000/camel-quarkus-jvm/camel-quarkus-rhoam-webhook-handler-api:1.0.0 ...
 [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Getting image source signatures
@@ -637,7 +620,7 @@ If you want to learn more about building native executables, please consult http
     1. **IF NOT ALREADY INSTALLED**:
         1. Install, via OLM, the `Red Hat OpenShift distributed tracing platform` (Jaeger) operator with an `AllNamespaces` scope. :warning: Needs `cluster-admin` privileges
             ```zsh
-            oc create --save-config -f - <<EOF
+            oc apply -f - <<EOF
             apiVersion: operators.coreos.com/v1alpha1
             kind: Subscription
             metadata:
@@ -657,7 +640,7 @@ If you want to learn more about building native executables, please consult http
             ```
     2. Create the `allInOne` Jaeger instance.
         ```zsh
-        oc create --save-config -f - <<EOF
+        oc apply -f - <<EOF
         apiVersion: jaegertracing.io/v1
         kind: Jaeger
         metadata:
@@ -693,10 +676,17 @@ If you want to learn more about building native executables, please consult http
         ```zsh
         ./mvnw package -Pnative -Dquarkus.native.container-build=true \
         -Dquarkus.native.native-image-xmx=7g
+
+        TODO -> ./mvnw clean package -Pnative -Dquarkus.kubernetes.deploy=true \
+        -Dquarkus.native.native-image-xmx=7g
         ```
     2. For Podman use:
         ```zsh
         ./mvnw package -Pnative -Dquarkus.native.container-build=true \
+        -Dquarkus.native.container-runtime=podman \
+        -Dquarkus.native.native-image-xmx=7g
+
+        TODO -> ./mvnw clean package -Pnative -Dquarkus.kubernetes.deploy=true \
         -Dquarkus.native.container-runtime=podman \
         -Dquarkus.native.native-image-xmx=7g
         ```
@@ -723,6 +713,62 @@ If you want to learn more about building native executables, please consult http
     [INFO] ------------------------------------------------------------------------
     [INFO] Total time:  09:45 min
     [INFO] Finished at: 2021-11-24T11:52:32+01:00
+    [INFO] ------------------------------------------------------------------------
+
+    TODO: REPLACE WITH THIS BELOW
+    [...]
+    [INFO] [io.quarkus.deployment.pkg.steps.JarResultBuildStep] Building native image source jar: /Users/jnyilimb/workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-native-image-source-jar/camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar
+    [INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildStep] Building native image from /Users/jnyilimb/workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-native-image-source-jar/camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar
+    [INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildContainerRunner] Using docker to run the native image builder
+    [INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildContainerRunner] Checking image status registry.access.redhat.com/quarkus/mandrel-21-rhel8:21.2
+    21.2: Pulling from quarkus/mandrel-21-rhel8
+    Digest: sha256:7527acf6db5c01225cd208326a08c057fe506fa61a72cd67b503d372214981a0
+    Status: Image is up to date for registry.access.redhat.com/quarkus/mandrel-21-rhel8:21.2
+    registry.access.redhat.com/quarkus/mandrel-21-rhel8:21.2
+    [INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildStep] Running Quarkus native-image plugin on native-image 21.2.0.2-0b3 Mandrel Distribution (Java Version 11.0.13+8-LTS)
+    [INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildRunner] docker run --env LANG=C --rm -v /Users/jnyilimb/workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-native-image-source-jar:/project:z --name build-native-epNae registry.access.redhat.com/quarkus/mandrel-21-rhel8:21.2 -J-Dsun.nio.ch.maxUpdateArraySize=100 -J-Djava.util.logging.manager=org.jboss.logmanager.LogManager -J-Dcom.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize=true -J-Dvertx.logger-delegate-factory-class-name=io.quarkus.vertx.core.runtime.VertxLogDelegateFactory -J-Dvertx.disableDnsResolver=true -J-Dio.netty.leakDetection.level=DISABLED -J-Dio.netty.allocator.maxOrder=3 -J-Duser.language=en -J-Duser.country=FR -J-Dfile.encoding=UTF-8 -H:InitialCollectionPolicy=com.oracle.svm.core.genscavenge.CollectionPolicy\$BySpaceAndTime -H:+JNI -H:+AllowFoldMethods -H:FallbackThreshold=0 -H:+ReportExceptionStackTraces -J-Xmx7g -H:+AddAllCharsets -H:EnableURLProtocols=http,https -H:-UseServiceLoaderFeature -H:+StackTrace -H:-ParseOnce camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner -jar camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar
+    [...]
+    # Printing build artifacts to: /project/camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.build_artifacts.txt
+    [INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildRunner] docker run --env LANG=C --rm -v /Users/jnyilimb/workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-native-image-source-jar:/project:z --entrypoint /bin/bash registry.access.redhat.com/quarkus/mandrel-21-rhel8:21.2 -c objcopy --strip-debug camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner
+    [INFO] Checking for existing resources in: /Users/jnyilimb/workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/src/main/kubernetes.
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Performing openshift binary build with native image on server: https://api.eannyil.sandbox1789.opentlc.com:6443/ in namespace:camel-quarkus-native.
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Applied: ImageStream camel-quarkus-rhoam-webhook-handler-api
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Found: ImageStream s2i-java repository: fabric8/s2i-java
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Applied: BuildConfig camel-quarkus-rhoam-webhook-handler-api
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Receiving source from STDIN as archive ...
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Caching blobs under "/var/cache/blobs".
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] 
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Pulling image registry.access.redhat.com/ubi8/ubi-minimal:8.4 ...
+    [...]
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Pushing image image-registry.openshift-image-registry.svc:5000/camel-quarkus-native/camel-quarkus-rhoam-webhook-handler-api:1.0.0 ...
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Getting image source signatures
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:878307b435168156c2b2b4a0e4bd803e7c6b8e57396b2cd873ca1a3bd85032c6
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:3b56abbadd1de32068d241d52c4e200acb509c34ee1bbb1f3c0e50f5f4a5e655
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:d46336f50433ab27336fad8f9b251b2f68a66d376c902dfca23a6851acae502c
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:be961ec6866344c06fe85e53011321da508bc495513bb75a45fc41f6182921b6
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying config sha256:37a60e1e85ea032efb576bf130e7346ebcd0d94d1636b7ad785cf5845018448d
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Writing manifest to image destination
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Storing signatures
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Successfully pushed image-registry.openshift-image-registry.svc:5000/camel-quarkus-native/camel-quarkus-rhoam-webhook-handler-api@sha256:b67d9b9e33910809bcfeceeebf14396fea959fa8435e59bc1b585f5d6c4e309c
+    [INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Push successful
+    [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Deploying to openshift server: https://api.eannyil.sandbox1789.opentlc.com:6443/ in namespace: camel-quarkus-native.
+    [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: ServiceAccount camel-quarkus-rhoam-webhook-handler-api.
+    [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Service camel-quarkus-rhoam-webhook-handler-api.
+    [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Role view-secrets.
+    [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: RoleBinding camel-quarkus-rhoam-webhook-handler-api-view.
+    [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: RoleBinding camel-quarkus-rhoam-webhook-handler-api-view-secrets.
+    [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: ImageStream camel-quarkus-rhoam-webhook-handler-api.
+    [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: ImageStream s2i-java.
+    [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: BuildConfig camel-quarkus-rhoam-webhook-handler-api.
+    [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: DeploymentConfig camel-quarkus-rhoam-webhook-handler-api.
+    [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Route camel-quarkus-rhoam-webhook-handler-api.
+    [INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] The deployed application can be accessed at: http://camel-quarkus-rhoam-webhook-handler-api-camel-quarkus-native.apps.eannyil.sandbox1789.opentlc.com
+    [INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 1131420ms
+    [INFO] ------------------------------------------------------------------------
+    [INFO] BUILD SUCCESS
+    [INFO] ------------------------------------------------------------------------
+    [INFO] Total time:  19:01 min
+    [INFO] Finished at: 2021-11-27T16:38:55+01:00
     [INFO] ------------------------------------------------------------------------
     ```
 
@@ -820,6 +866,114 @@ If you want to learn more about building native executables, please consult http
     kn service list camel-quarkus-rhoam-webhook-handler-api
     ```
     The output in the column called "READY" reads `True` if the service is ready.
+
+## TODO : serverless
+
+```zsh
+./mvnw clean package -Dquarkus.kubernetes.deploy=true \
+-Dquarkus.kubernetes.deployment-target=knative \
+-Dquarkus.container-image.registry=image-registry.openshift-image-registry.svc:5000 \
+-Dquarkus.container-image.group=test-serverless
+```
+```zsh
+[...]
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeploy] Kubernetes API Server at 'https://api.jeannyil.sandbox1789.opentlc.com:6443/' successfully contacted.
+[INFO] Checking for existing resources in: /Users/jnyilimb/workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/src/main/kubernetes.
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Performing openshift binary build with jar on server: https://api.jeannyil.sandbox1789.opentlc.com:6443/ in namespace:test-serverless.
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Applied: ImageStream camel-quarkus-rhoam-webhook-handler-api
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Applied: ImageStream openjdk-11
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Applied: BuildConfig camel-quarkus-rhoam-webhook-handler-api
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Receiving source from STDIN as archive ...
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Caching blobs under "/var/cache/blobs".
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] 
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Pulling image registry.access.redhat.com/ubi8/ubi-minimal:8.4 ...
+[...]
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Pushing image image-registry.openshift-image-registry.svc:5000/test-serverless/camel-quarkus-rhoam-webhook-handler-api:1.0.0 ...
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Getting image source signatures
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:a02d1d040deb4ab4db5d5a536745734224b807ec2cd6fbfab0a40f1c462013a7
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:fb1e3ac9e8de332e8f81b73d8e31cc53c1d90db23b1dc9a9adea9466dd6eaf25
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:d1095dca481ce44dc8c2e681f081078365cc1fa3408e68e90509621b22697f0f
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:59d6a097139015dd7eff86f5397791571c4013bdadc4632572d143ecd111c612
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:d46336f50433ab27336fad8f9b251b2f68a66d376c902dfca23a6851acae502c
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:be961ec6866344c06fe85e53011321da508bc495513bb75a45fc41f6182921b6
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:cb6c74f325620a34f22dd4e35243939c34103423c1af1c1479fbe2701c0eb0a7
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying config sha256:b1f6b4cad23ae18c29df8231969b9387f681ad4ee0779151137fe3ae6b6060e4
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Writing manifest to image destination
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Storing signatures
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Successfully pushed image-registry.openshift-image-registry.svc:5000/test-serverless/camel-quarkus-rhoam-webhook-handler-api@sha256:9b3a3d9efe852b9c58deedc6612c92695319baae3e96e36c877df0d6b7f8aab7
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Push successful
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Deploying to knative server: https://api.jeannyil.sandbox1789.opentlc.com:6443/ in namespace: test-serverless.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: ServiceAccount camel-quarkus-rhoam-webhook-handler-api.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Service camel-quarkus-rhoam-webhook-handler-api.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Role view-secrets.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: RoleBinding camel-quarkus-rhoam-webhook-handler-api-view.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: RoleBinding camel-quarkus-rhoam-webhook-handler-api-view-secrets.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: ConfigMap config-autoscaler.
+[INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 94998ms
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:44 min
+[INFO] Finished at: 2021-11-27T21:50:13+01:00
+[INFO] ------------------------------------------------------------------------
+```
+
+```zsh
+./mvnw clean package -Pnative -Dquarkus.kubernetes.deploy=true \
+-Dquarkus.kubernetes.deployment-target=knative \
+-Dquarkus.container-image.registry=image-registry.openshift-image-registry.svc:5000 \
+-Dquarkus.container-image.group=test-serverless \
+-Dquarkus.native.native-image-xmx=7g
+```
+```zsh
+[...]
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeploy] Kubernetes API Server at 'https://api.jeannyil.sandbox1789.opentlc.com:6443/' successfully contacted.
+[INFO] [io.quarkus.deployment.pkg.steps.JarResultBuildStep] Building native image source jar: /Users/jnyilimb/workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-native-image-source-jar/camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar
+[INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildStep] Building native image from /Users/jnyilimb/workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-native-image-source-jar/camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar
+[INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildContainerRunner] Using docker to run the native image builder
+[INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildContainerRunner] Checking image status registry.access.redhat.com/quarkus/mandrel-21-rhel8:21.2
+21.2: Pulling from quarkus/mandrel-21-rhel8
+Digest: sha256:7527acf6db5c01225cd208326a08c057fe506fa61a72cd67b503d372214981a0
+Status: Image is up to date for registry.access.redhat.com/quarkus/mandrel-21-rhel8:21.2
+registry.access.redhat.com/quarkus/mandrel-21-rhel8:21.2
+[INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildStep] Running Quarkus native-image plugin on native-image 21.2.0.2-0b3 Mandrel Distribution (Java Version 11.0.13+8-LTS)
+[INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildRunner] docker run --env LANG=C --rm -v /Users/jnyilimb/workdata/myGit/RedHatApiManagement/apicurio-generated-projects/camel-quarkus-rhoam-webhook-handler-api/target/camel-quarkus-rhoam-webhook-handler-api-1.0.0-native-image-source-jar:/project:z --name build-native-sYbVE registry.access.redhat.com/quarkus/mandrel-21-rhel8:21.2 -J-Djava.util.logging.manager=org.jboss.logmanager.LogManager -J-Dsun.nio.ch.maxUpdateArraySize=100 -J-Dcom.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize=true -J-Dvertx.logger-delegate-factory-class-name=io.quarkus.vertx.core.runtime.VertxLogDelegateFactory -J-Dvertx.disableDnsResolver=true -J-Dio.netty.leakDetection.level=DISABLED -J-Dio.netty.allocator.maxOrder=3 -J-Duser.language=en -J-Duser.country=FR -J-Dfile.encoding=UTF-8 -H:InitialCollectionPolicy=com.oracle.svm.core.genscavenge.CollectionPolicy\$BySpaceAndTime -H:+JNI -H:+AllowFoldMethods -H:FallbackThreshold=0 -H:+ReportExceptionStackTraces -J-Xmx7g -H:+AddAllCharsets -H:EnableURLProtocols=http,https -H:-UseServiceLoaderFeature -H:+StackTrace -H:-ParseOnce camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner -jar camel-quarkus-rhoam-webhook-handler-api-1.0.0-runner.jar
+[...]
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Performing openshift binary build with native image on server: https://api.jeannyil.sandbox1789.opentlc.com:6443/ in namespace:test-serverless.
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Applied: ImageStream camel-quarkus-rhoam-webhook-handler-api
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Applied: ImageStream s2i-java
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Applied: BuildConfig camel-quarkus-rhoam-webhook-handler-api
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Receiving source from STDIN as archive ...
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Caching blobs under "/var/cache/blobs".
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] 
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Pulling image registry.access.redhat.com/ubi8/ubi-minimal:8.4 ...
+[...]
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Pushing image image-registry.openshift-image-registry.svc:5000/test-serverless/camel-quarkus-rhoam-webhook-handler-api:1.0.0 ...
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Getting image source signatures
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:13532d8fa0d604ed1c307328d8ee128f34f9d3347377bf3c73dd831de24a543c
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:1f8bf1c4b819ee0739be1fe7939e5969f217005333eaf28b984b5ad525acc574
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:be961ec6866344c06fe85e53011321da508bc495513bb75a45fc41f6182921b6
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying blob sha256:d46336f50433ab27336fad8f9b251b2f68a66d376c902dfca23a6851acae502c
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Copying config sha256:ce5a4892e1042f89a0767f366d9683dda2de28635b9d86d4eace91d9d55dc65c
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Writing manifest to image destination
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Storing signatures
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Successfully pushed image-registry.openshift-image-registry.svc:5000/test-serverless/camel-quarkus-rhoam-webhook-handler-api@sha256:e18ca19662e7bdb09a071cfc7c2017c343f25679e7db2a8af425e8f7db7a62be
+[INFO] [io.quarkus.container.image.openshift.deployment.OpenshiftProcessor] Push successful
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Deploying to knative server: https://api.jeannyil.sandbox1789.opentlc.com:6443/ in namespace: test-serverless.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: ServiceAccount camel-quarkus-rhoam-webhook-handler-api.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Service camel-quarkus-rhoam-webhook-handler-api.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: Role view-secrets.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: RoleBinding camel-quarkus-rhoam-webhook-handler-api-view.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: RoleBinding camel-quarkus-rhoam-webhook-handler-api-view-secrets.
+[INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Applied: ConfigMap config-autoscaler.
+[INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 1478794ms
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  25:08 min
+[INFO] Finished at: 2021-11-27T22:27:30+01:00
+[INFO] ------------------------------------------------------------------------
+```
 
 ## Start-up time comparison on the same OpenShift cluster
 
