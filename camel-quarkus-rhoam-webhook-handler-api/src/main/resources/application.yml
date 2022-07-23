@@ -5,6 +5,19 @@ camel:
     context:
         name: camel-quarkus-rhoam-webhook-handler-api
 
+# integrations-broker (Red Hat AMQ 7 Broker) - configuration leveraged by the Camel Quarkus JMS extension
+integrations-broker:
+    # Connection URL
+    url: amqps://amq-ssl-broker-amqp-0-svc-rte-amq7-broker-cluster.apps.cluster-tjldv.tjldv.sandbox661.opentlc.com:443?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000
+    # Username for authentication
+    username: ${camel.context.name}
+    # Password for authentication
+    password: P@ssw0rd
+    # The maximum number of connections for a single pool. The default is 1.
+    pool-max-connections: 1
+    # The maximum number of sessions for each connection. The default is 500. A negative value removes any limit.
+    max-sessions-per-connection: 500
+
 # Quarkus
 quarkus:
     # Display the banner
@@ -60,14 +73,15 @@ quarkus:
         # The traces endpoint to the Collector
         endpoint: http://localhost:14268/api/traces
             
-    ## Configuration of the Quarkus Qpid JMS extension leveraged by Camel Quarkus AMQP extension
-    qpid-jms:
-        # Connection URL for the injected factory
-        url: amqps://amq-ssl-broker-amqp-0-svc-rte-amq7-broker-cluster.apps.cluster-tjldv.tjldv.sandbox661.opentlc.com:443?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000
-        # Username to set on the factory
-        username: ${camel.context.name}
-        # Password to set on the factory
-        password: P@ssw0rd
+    ## DEPRECATED -  Configuration of the Quarkus Qpid JMS extension leveraged by Camel Quarkus AMQP extension
+    ## I am using the Camel Quarkus JMS component - See integrations-broker.* properties above
+    # qpid-jms:
+    #     # Connection URL for the injected factory
+    #     url: amqps://amq-ssl-broker-amqp-0-svc-rte-amq7-broker-cluster.apps.cluster-tjldv.tjldv.sandbox661.opentlc.com:443?transport.trustAll=true&transport.verifyHost=false&amqp.idleTimeout=120000
+    #     # Username to set on the factory
+    #     username: ${camel.context.name}
+    #     # Password to set on the factory
+    #     password: P@ssw0rd
     
     ## Quarkus native build 
     native:

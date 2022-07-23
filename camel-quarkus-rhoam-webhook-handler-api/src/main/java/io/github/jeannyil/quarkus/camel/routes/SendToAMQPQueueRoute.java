@@ -56,7 +56,7 @@ public class SendToAMQPQueueRoute extends RouteBuilder {
             .setHeader("RHOAM_EVENT_TYPE").xpath("//event/type", String.class)
             .setHeader("RHOAM_EVENT_ACTION").xpath("//event/action", String.class)
             .log(LoggingLevel.INFO, logName, ">>> ${routeId} - Sending to RHOAM.WEBHOOK.EVENTS.QUEUE AMQP address...")
-            .to(ExchangePattern.InOnly, "amqp:queue:RHOAM.WEBHOOK.EVENTS.QUEUE")
+            .to(ExchangePattern.InOnly, "jms:queue:RHOAM.WEBHOOK.EVENTS.QUEUE")
 			.setBody()
 				.method("responseMessageHelper", "generateOKResponseMessage()")
 				.id("set-OK-reponseMessage")
