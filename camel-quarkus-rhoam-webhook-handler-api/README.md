@@ -26,7 +26,7 @@ type: Opaque
 ```
 
 ## Prerequisites
-- JDK 11/17 installed with `JAVA_HOME` configured appropriately
+- JDK 17 installed with `JAVA_HOME` configured appropriately
 - Apache Maven 3.8.1+
 - An [**AMQP 1.0 protocol**](https://www.amqp.org/) compliant broker should already be installed and running. [**Red Hat AMQ 7.10 broker on OpenShift**](https://access.redhat.com/documentation/en-us/red_hat_amq_broker/7.10) with an SSL-enabled AMQP acceptor has been used for testing.
 - **OPTIONAL**: [**Jaeger**](https://www.jaegertracing.io/), a distributed tracing system for observability ([_open tracing_](https://opentracing.io/)). :bulb: A simple way of starting a Jaeger tracing server is with `docker` or `podman`:
