@@ -194,8 +194,8 @@ INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Selecting target 'op
 
 1. Make sure the latest supported OpenJDK 11 image is imported in OpenShift
     ```shell script
-    oc import-image --confirm openjdk-11-ubi8 \
-    --from=registry.access.redhat.com/ubi8/openjdk-11 \
+    oc import-image --confirm openjdk-17-ubi8 \
+    --from=registry.access.redhat.com/ubi8/openjdk-17:1.11 \
     -n openshift
     ```
 
@@ -246,7 +246,7 @@ INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Selecting target 'op
     oc new-app https://github.com/jeannyil-apis-playground/apicurio-generated-projects.git \
     --context-dir=camel-quarkus-rhoam-webhook-handler-api \
     --name=camel-quarkus-rhoam-webhook-handler-api \
-    --image-stream="openshift/openjdk-11-ubi8" \
+    --image-stream="openshift/openjdk-17-ubi8" \
     --labels=app.openshift.io/runtime=quarkus
     ```
 
