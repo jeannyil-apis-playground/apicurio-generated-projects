@@ -201,7 +201,7 @@ INFO] [io.quarkus.kubernetes.deployment.KubernetesDeployer] Selecting target 'op
 
 2. Create the `view-secrets` role and bind it, along with the `view` cluster role, to the `default` service account used to run the quarkus application. These permissions allow the `default` service account to access secrets.
     ```shell script
-    oc create -f <(echo '
+    oc apply -f <(echo '
     ---
     apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
@@ -800,7 +800,7 @@ If you want to learn more about building native executables, please consult http
 
 8. Create the `camel-quarkus-rhoam-webhook-handler-api` service account that will be used to run the quarkus application.
     ```shell script
-    oc create -f <(echo '
+    oc apply -f <(echo '
     apiVersion: v1
     kind: ServiceAccount
     metadata:
@@ -814,7 +814,7 @@ If you want to learn more about building native executables, please consult http
 
 9. Create the `view-secrets` role and bind it, along with the `view` cluster role, to the `camel-quarkus-rhoam-webhook-handler-api` service account used to run the quarkus application. These permissions allow the `camel-quarkus-rhoam-webhook-handler-api` service account to access secrets.
     ```shell script
-    oc create -f <(echo '
+    oc apply -f <(echo '
     ---
     apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
