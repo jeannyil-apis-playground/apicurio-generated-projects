@@ -2,15 +2,13 @@ package io.github.jeannyil.quarkus.camel.configurations;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
-
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-
-import org.messaginghub.pooled.jms.JmsPoolConnectionFactory;
-import org.apache.qpid.jms.JmsConnectionFactory;
 import javax.jms.JMSException;
 
-import org.apache.camel.quarkus.core.events.ComponentAddEvent;
 import org.apache.camel.component.jms.JmsComponent;
+import org.apache.camel.quarkus.core.events.ComponentAddEvent;
+import org.apache.qpid.jms.JmsConnectionFactory;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.messaginghub.pooled.jms.JmsPoolConnectionFactory;
 
 @ApplicationScoped
 public class CamelJmsConfiguration {
